@@ -1,9 +1,11 @@
+import { useNavigate } from 'react-router-dom';
 import { useFavorites } from '../hooks/useFavorites.js';
 import { User, Settings, Heart, MapPin, LogOut, ChevronRight, Bell, Shield, HelpCircle, Award } from 'lucide-react';
 import './ProfilePage.css';
 
 function ProfilePage() {
     const { favorites } = useFavorites();
+    const navigate = useNavigate();
     // Mock user data
     const user = {
         name: "Bharath Kumara",
@@ -94,7 +96,7 @@ function ProfilePage() {
                     </div>
                 </section>
 
-                <button className="logout-button">
+                <button className="logout-button" onClick={() => navigate('/login')}>
                     <LogOut size={20} />
                     <span>Sign Out</span>
                 </button>
