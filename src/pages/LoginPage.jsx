@@ -16,15 +16,18 @@ function LoginPage() {
 
         const credentials = {
             user: { id: '1', pass: '1' },
-            admin: { id: '2', pass: '2' },
-            partner: { id: '3', pass: '3' }
+            partner: { id: '2', pass: '2' }
         };
 
         const target = credentials[role];
 
         if (email === target.id && password === target.pass) {
             console.log(`Successfully logged in as ${role}`);
-            navigate('/explore');
+            if (role === 'partner') {
+                navigate('/partner');
+            } else {
+                navigate('/explore');
+            }
         } else {
             setError(`Invalid credentials for ${role.toUpperCase()} role.`);
         }
@@ -45,12 +48,6 @@ function LoginPage() {
                         onClick={() => { setRole('user'); setError(''); }}
                     >
                         User
-                    </button>
-                    <button
-                        className={`role-btn ${role === 'admin' ? 'active' : ''}`}
-                        onClick={() => { setRole('admin'); setError(''); }}
-                    >
-                        Admin
                     </button>
                     <button
                         className={`role-btn ${role === 'partner' ? 'active' : ''}`}

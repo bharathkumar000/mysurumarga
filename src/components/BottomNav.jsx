@@ -21,9 +21,9 @@ function BottomNav() {
                     <span className="nav-label">Saved</span>
                 </NavLink>
 
-                <NavLink to="/login" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                <NavLink to="/profile" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
                     <User className="nav-icon" />
-                    <span className="nav-label">Login</span>
+                    <span className="nav-label">Profile</span>
                 </NavLink>
             </div>
         </nav>

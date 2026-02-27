@@ -5,62 +5,213 @@ import Chip from '../components/Chip';
 import './ExplorePage.css';
 
 // Mock Data based on the UI screenshot
-const MOCK_CATEGORIES = ['All', 'Hidden Gems', 'Local Artisans', 'Hyperlocal Food', 'Experiences', 'Heritage', 'Nature'];
+const MOCK_CATEGORIES = ['All', 'Explore Mysore', 'Hidden Gems', 'Local Artisans', 'Hyperlocal Food', 'Heritage', 'Nature'];
 
 const MOCK_PLACES = [
+    // Top Tourism Places (Explore Mysore)
     {
         id: 1,
+        title: 'Mysore Palace (Amba Vilas)',
+        description: "The city's crown jewel, renowned for its Indo-Saracenic architecture and opulent Durbar halls.",
+        location: 'City Center',
+        rating: '4.9',
+        category: 'Explore Mysore',
+        type: 'main',
+        image: '/images/mysore_palace.png'
+    },
+    {
+        id: 2,
+        title: 'Chamundi Hill & Temple',
+        description: 'A sacred site at 3,489 feet, dedicated to Goddess Chamundeshwari.',
+        location: 'Chamundi Hills',
+        rating: '4.8',
+        category: 'Explore Mysore',
+        type: 'main',
+        image: '/images/chamundi_hills.png'
+    },
+    {
+        id: 3,
+        title: "St. Philomena's Cathedral",
+        description: 'One of the largest Gothic-style churches in Asia, inspired by Cologne Cathedral.',
+        location: 'Ashoka Road',
+        rating: '4.7',
+        category: 'Explore Mysore',
+        type: 'main',
+        image: '/images/st_philomena.png'
+    },
+    {
+        id: 4,
+        title: 'Mysore Zoo (Sri Chamarajendra)',
+        description: 'One of the oldest and most diverse zoos in India, established in 1892.',
+        location: 'Indiranagar',
+        rating: '4.6',
+        category: 'Explore Mysore',
+        type: 'main',
+        image: '/images/mysore_zoo.png'
+    },
+    {
+        id: 5,
+        title: 'Brindavan Gardens',
+        description: 'Terraced garden near KRS Dam, famous for its symmetrical design and musical fountains.',
+        location: 'KRS Dam Road',
+        rating: '4.5',
+        category: 'Explore Mysore',
+        type: 'main',
+        image: '/images/brindavan_gardens.png'
+    },
+    {
+        id: 6,
+        title: 'Jaganmohan Palace',
+        description: 'An older palace containing a vast collection of royal artifacts and paintings.',
+        location: 'City Center',
+        rating: '4.4',
+        category: 'Explore Mysore',
+        type: 'main',
+        image: '/images/mysore_palace.png' // Shared placeholder
+    },
+
+    // Hidden Gems
+    {
+        id: 7,
+        title: 'Karanji Lake',
+        description: 'Serene nature park featuring India’s largest walk-through aviary.',
+        location: 'Near Mysore Zoo',
+        rating: '4.7',
+        category: 'Hidden Gems',
+        type: 'hidden',
+        image: '/images/karanji_lake.png'
+    },
+    {
+        id: 8,
+        title: 'Kukkarahalli Lake',
+        description: 'A local favorite for birdwatching and peaceful evening walks.',
+        location: 'Manasagangothri',
+        rating: '4.8',
+        category: 'Hidden Gems',
+        type: 'hidden',
+        image: '/images/kukkarahalli_lake.png'
+    },
+    {
+        id: 9,
+        title: 'Sand Sculpture Museum',
+        description: 'Unique museum founded by M.N. Gowri, showcasing intricate sand art.',
+        location: 'Chamundi Hill Road',
+        rating: '4.3',
+        category: 'Hidden Gems',
+        type: 'hidden',
+        image: '/images/sand_sculpture_museum.png'
+    },
+    {
+        id: 10,
+        title: 'Mysore Rail Museum',
+        description: 'Displays vintage locomotives and royal carriages from the golden era.',
+        location: 'Near Railway Station',
+        rating: '4.5',
+        category: 'Hidden Gems',
+        type: 'hidden',
+        image: '/images/rail_museum.png'
+    },
+    {
+        id: 11,
+        title: 'Lingabudi Lake',
+        description: 'One of the city’s oldest freshwater lakes, perfect for nature lovers.',
+        location: 'Ramakrishna Nagar',
+        rating: '4.2',
+        category: 'Hidden Gems',
+        type: 'hidden',
+        image: '/images/lingabudi_lake.png'
+    },
+
+    // Local Artisans
+    {
+        id: 12,
         title: 'Rosewood Inlay Workshop',
-        description: 'Witness the delicate art of rosewood inlay work unique to Mysuru',
+        description: 'Witness the delicate art of rosewood inlay work, a craft that has flourished in Mysuru for centuries.',
         location: 'Ashoka Road',
         rating: '4.4',
         category: 'Local Artisans',
         image: '/images/rosewood.png'
     },
     {
-        id: 2,
-        title: 'Traditional Mysore Pak Makers',
-        description: 'Family making authentic Mysore Pak using the original palace recipe',
-        location: 'Sayyaji Rao Road',
+        id: 13,
+        title: 'Mysore Silk Weaving Center',
+        description: 'See how the world-famous Mysore Silk sarees are woven with pure gold zari and natural silk.',
+        location: 'Mananthavady Road',
+        rating: '4.6',
+        category: 'Local Artisans',
+        image: '/images/mysore_silk.png'
+    },
+    {
+        id: 14,
+        title: 'Sandalwood Oil Factory',
+        description: 'Visit the Government Sandalwood Oil Factory to see how the "Liquid Gold" is distilled.',
+        location: 'Ashokapuram',
+        rating: '4.5',
+        category: 'Local Artisans',
+        image: '/images/sandalwood.png'
+    },
+
+    // Hyperlocal Food
+    {
+        id: 15,
+        title: 'Mylari Dosa',
+        description: 'Famous for its unique, pillowy-soft butter dosas served on a traditional banana leaf.',
+        location: 'Nazarbad',
         rating: '4.9',
         category: 'Hyperlocal Food',
-        image: '/images/mysore_pak.png'
+        image: '/images/mylari_dosa.png'
     },
     {
-        id: 3,
-        title: 'Chamundi Hill Sunrise Point',
-        description: 'Breathtaking panoramic views of the city at dawn',
-        location: 'Chamundi Hills',
+        id: 16,
+        title: 'Guru Sweets Mart',
+        description: 'The direct descendants of the creator of the original Mysore Pak still serve it here.',
+        location: 'Devaraja Market',
         rating: '4.8',
-        category: 'Hidden Gems',
-        image: '/images/chamundi_hills.png'
+        category: 'Hyperlocal Food',
+        image: '/images/guru_sweets.png'
     },
     {
-        id: 4,
-        title: 'Srirangapatna Heritage Walk',
-        description: 'Explore the historical monuments and ruins of this island town',
-        location: 'Srirangapatna',
-        rating: '4.5',
+        id: 17,
+        title: 'Devaraja Market',
+        description: 'A vibrant, century-old bazaar offering everything from mounds of kumkum to fragrant jasmine.',
+        location: 'City Center',
+        rating: '4.7',
         category: 'Heritage',
-        image: '/images/srirangapatna.png'
+        image: '/images/devaraja_market.png'
     }
 ];
 
-function ExplorePage() {
+const ExplorePage = () => {
     const [activeTab, setActiveTab] = useState('All');
 
-    const filteredPlaces = activeTab === 'All'
-        ? MOCK_PLACES
-        : MOCK_PLACES.filter(place => place.category === activeTab);
+    const filteredPlaces = MOCK_PLACES.filter(place => {
+        const matchesCategory = activeTab === 'All' || place.category === activeTab;
+        return matchesCategory;
+    });
 
     return (
         <div className="explore-page pt-4">
             {/* Header */}
             <div className="container pb-2 flex justify-between items-center">
-                <h1 className="text-2xl font-bold">Explore</h1>
+                <h1 className="text-2xl font-bold">Discover Mysuru</h1>
                 <button className="icon-btn text-secondary" aria-label="Menu list">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-list"><line x1="8" x2="21" y1="6" y2="6" /><line x1="8" x2="21" y1="12" y2="12" /><line x1="8" x2="21" y1="18" y2="18" /><line x1="3" x2="3.01" y1="6" y2="6" /><line x1="3" x2="3.01" y1="12" y2="12" /><line x1="3" x2="3.01" y1="18" y2="18" /></svg>
+                    <Settings2 size={22} />
                 </button>
+            </div>
+
+            {/* Top Category Swiper (replacing old type-switcher) */}
+            <div className="container py-2 overflow-x-auto no-scrollbar">
+                <div className="type-tab-switcher category-tab-switcher">
+                    {MOCK_CATEGORIES.map(category => (
+                        <button
+                            key={category}
+                            className={`type-tab ${activeTab === category ? 'active' : ''}`}
+                            onClick={() => setActiveTab(category)}
+                        >
+                            {category}
+                        </button>
+                    ))}
+                </div>
             </div>
 
             {/* Search Bar */}
@@ -69,42 +220,26 @@ function ExplorePage() {
                     <Search className="search-icon text-secondary" size={20} />
                     <input
                         type="text"
-                        placeholder="Search places, food, artisans..."
+                        placeholder={`Search in ${activeTab}...`}
                         className="search-input"
                     />
-                </div>
-                <button className="filter-btn" aria-label="Filters">
-                    <Settings2 size={20} className="text-secondary" />
-                </button>
-            </div>
-
-            {/* Chips List */}
-            <div className="chips-container py-3">
-                <div className="chips-scroll flex gap-2 w-full px-4 items-center">
-                    {MOCK_CATEGORIES.map(category => (
-                        <Chip
-                            key={category}
-                            label={category}
-                            isActive={activeTab === category}
-                            onClick={() => setActiveTab(category)}
-                        />
-                    ))}
                 </div>
             </div>
 
             {/* Places Grid */}
-            <div className="container py-4 pb-24 grid gap-4 places-grid">
+            <div className="container py-4 pb-24 grid gap-5 places-grid">
                 {filteredPlaces.map(place => (
                     <PlaceCard key={place.id} {...place} />
                 ))}
                 {filteredPlaces.length === 0 && (
-                    <div className="text-center py-10 text-secondary">
-                        No places found for this category.
+                    <div className="text-center py-20 text-secondary">
+                        <div className="mb-2">✨</div>
+                        No {displayType === 'hidden' ? 'hidden gems' : 'places'} found here yet.
                     </div>
                 )}
             </div>
         </div>
     );
-}
+};
 
 export default ExplorePage;

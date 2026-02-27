@@ -123,3 +123,40 @@
         grid-template-columns: repeat(4, 1fr);
     }
 }
+
+/* Type Switcher Tabs */
+.type-tab-switcher {
+    display: flex;
+    background-color: #f1f5f9;
+    padding: 0.25rem;
+    border-radius: var(--radius-full);
+    gap: 0.25rem;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    width: fit-content;
+    min-width: 100%;
+}
+
+.type-tab {
+    flex: 0 0 auto;
+    padding: 0.75rem 1.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    white-space: nowrap;
+    text-align: center;
+}
+
+.type-tab.active {
+    background-color: white;
+    color: var(--primary);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.type-tab:not(.active):hover {
+    color: var(--text-primary);
+}

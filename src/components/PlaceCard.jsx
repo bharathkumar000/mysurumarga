@@ -1,7 +1,12 @@
 import { Heart, MapPin, Star } from 'lucide-react';
+import { useFavorites } from '../hooks/useFavorites.js';
 import './PlaceCard.css';
 
-function PlaceCard({ image, category, title, description, location, rating }) {
+function PlaceCard(place) {
+    const { image, category, title, description, location, rating, id } = place;
+    const { isFavorite, toggleFavorite } = useFavorites();
+    const active = isFavorite(id);
+
     // Simple mapping for category badge colors
     const getCategoryTheme = (cat) => {
         switch (cat) {
@@ -24,8 +29,20 @@ function PlaceCard({ image, category, title, description, location, rating }) {
                 </div>
 
                 {/* Favorite Icon overlay */}
-                <button className="favorite-btn" aria-label="Save to favorites">
-                    <Heart size={18} className="heart-icon" />
+                <button
+                    className={`favorite-btn ${active ? 'active' : ''}`}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        toggleFavorite({ id, image, category, title, description, location, rating });
+                    }}
+                    aria-label={active ? "Remove from favorites" : "Save to favorites"}
+                >
+                    <Heart
+                        size={18}
+                        className="heart-icon"
+                        fill={active ? "#ef4444" : "none"}
+                        color={active ? "#ef4444" : "currentColor"}
+                    />
                 </button>
             </div>
 
