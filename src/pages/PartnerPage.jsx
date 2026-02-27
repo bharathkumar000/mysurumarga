@@ -11,7 +11,8 @@ import {
     Navigation,
     Check,
     Package,
-    Plus
+    Plus,
+    Star
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
@@ -140,6 +141,54 @@ const PartnerPage = () => {
                     </div>
                 );
 
+            case 'reviews':
+                return (
+                    <div className="view-container">
+                        <div className="flex justify-between items-center mb-8">
+                            <h2 className="card-title">Traveler Echoes</h2>
+                            <div className="flex items-center gap-4">
+                                <span className="text-sm font-bold text-amber-600">4.8 Average Rating</span>
+                                <div className="flex">
+                                    {[1, 2, 3, 4, 5].map(s => <Star key={s} size={16} fill={s <= 4 ? "#d97706" : "none"} color="#d97706" />)}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex flex-col gap-6">
+                            {[
+                                { name: "Ananya Rao", date: "2 days ago", rating: 5, comment: "Absolutely breathtaking! The heritage trail was well-marked and the guides were incredibly knowledgeable. A must-visit in Mysuru.", avatar: "AR" },
+                                { name: "Vikram Singh", date: "1 week ago", rating: 4, comment: "Beautiful location, very peaceful. The only minor issue was the crowding near the entrance, but once inside, it's a paradise.", avatar: "VS" },
+                                { name: "Sarah Jenkins", date: "2 weeks ago", rating: 5, comment: "I've traveled all over India, and this heritage spot is one of the best maintained I've seen. The narrative storytelling is top-notch!", avatar: "SJ" },
+                                { name: "Priya Murthy", date: "1 month ago", rating: 4, comment: "Wonderful experience with the family. The kids loved the interactive map features. Will definitely return soon.", avatar: "PM" }
+                            ].map((review, i) => (
+                                <div key={i} className="form-card" style={{ padding: '2rem', borderLeft: '4px solid #f1f5f9' }}>
+                                    <div className="flex justify-between items-start mb-4">
+                                        <div className="flex items-center gap-4">
+                                            <div style={{ width: '44px', height: '44px', borderRadius: '50%', backgroundColor: '#f8fafc', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', color: '#64748b', border: '1px solid #e2e8f0' }}>
+                                                {review.avatar}
+                                            </div>
+                                            <div>
+                                                <h3 className="font-bold text-slate-800">{review.name}</h3>
+                                                <p className="text-xs text-slate-500">{review.date}</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex gap-1">
+                                            {[1, 2, 3, 4, 5].map(s => (
+                                                <Star key={s} size={14} fill={s <= review.rating ? "#fbbf24" : "none"} color="#fbbf24" />
+                                            ))}
+                                        </div>
+                                    </div>
+                                    <p className="text-sm text-slate-600 leading-relaxed italic">"{review.comment}"</p>
+                                    <div className="mt-4 flex gap-4">
+                                        <button className="text-xs font-bold text-amber-600 hover:underline">Reply to Traveler</button>
+                                        <button className="text-xs font-bold text-slate-400 hover:underline">Report</button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+
             case 'invitations':
                 return (
                     <div className="view-container">
@@ -198,48 +247,55 @@ const PartnerPage = () => {
             case 'profile':
                 return (
                     <div className="view-container">
-                        <div className="form-card">
-                            <h2 className="card-title mb-8">Heritage Identity</h2>
-                            <div className="profile-card-horizontal mb-10" style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                                <div className="profile-avatar-large" style={{ width: '80px', height: '80px', backgroundColor: '#fef3c7', borderRadius: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#d97706' }}>
-                                    <User size={40} />
+                        <div className="profile-section">
+                            {/* Profile Header Card */}
+                            <div className="settings-card profile-info-card">
+                                <div className="profile-header-main">
+                                    <div className="avatar-wrapper">
+                                        <User size={40} />
+                                    </div>
+                                    <div className="profile-details">
+                                        <h2 className="profile-name">Heritage Partner</h2>
+                                        <p className="profile-email">partner@mysurumarga.com</p>
+                                    </div>
+                                    <button className="photo-action-btn">Relocate Photo</button>
                                 </div>
-                                <div>
-                                    <h3 className="text-xl font-bold">Heritage Partner</h3>
-                                    <p className="text-secondary font-medium">partner@mysurumarga.com</p>
-                                </div>
-                                <button className="relocate-btn" style={{ marginLeft: 'auto', backgroundColor: '#0f172a', color: '#fff', padding: '0.75rem 1.5rem', borderRadius: '12px', fontSize: '0.85rem', fontWeight: 700 }}>Relocate Photo</button>
                             </div>
 
-                            <div className="toggles-grid">
-                                <div className="toggle-item">
-                                    <div className="toggle-info">
-                                        <h3>Echo Notifications</h3>
+                            {/* Settings Groups */}
+                            <h3 className="settings-group-title">Preferences</h3>
+                            <div className="settings-card">
+                                <div className="settings-row">
+                                    <div className="row-content">
+                                        <h4>Echo Notifications</h4>
                                         <p>Receive spiritual alerts when traveler echoes are recorded.</p>
                                     </div>
-                                    <div className="switch on mt-6">
-                                        <div className="switch-dot"></div>
-                                    </div>
+                                    <label className="toggle-switch">
+                                        <input type="checkbox" defaultChecked />
+                                        <span className="slider"></span>
+                                    </label>
                                 </div>
-                                <div className="toggle-item">
-                                    <div className="toggle-info">
-                                        <h3>Heritage Visibility</h3>
+                                <div className="settings-row">
+                                    <div className="row-content">
+                                        <h4>Heritage Visibility</h4>
                                         <p>Toggle your spot's presence in the physical soul of the app.</p>
                                     </div>
-                                    <div className="switch on mt-6">
-                                        <div className="switch-dot"></div>
-                                    </div>
+                                    <label className="toggle-switch">
+                                        <input type="checkbox" defaultChecked />
+                                        <span className="slider"></span>
+                                    </label>
                                 </div>
                             </div>
 
-                            <div className="mt-12 pt-8 border-t border-slate-100">
-                                <button
-                                    className="flex items-center gap-3 text-red-500 font-bold hover:bg-red-50 p-4 rounded-xl transition-colors w-full"
-                                    onClick={() => navigate('/login')}
-                                >
-                                    <LogOut size={20} />
-                                    <span>Sign Out from Dashboard</span>
-                                </button>
+                            <h3 className="settings-group-title">Account Security</h3>
+                            <div className="settings-card">
+                                <div className="settings-row clickable" onClick={() => navigate('/login')}>
+                                    <div className="row-content">
+                                        <h4 className="text-red-500">Sign Out from Dashboard</h4>
+                                        <p>Securely end your session on this device.</p>
+                                    </div>
+                                    <LogOut size={20} className="text-red-500" />
+                                </div>
                             </div>
                         </div>
                     </div>

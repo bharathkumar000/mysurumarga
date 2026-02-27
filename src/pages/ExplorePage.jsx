@@ -5,7 +5,7 @@ import Chip from '../components/Chip';
 import './ExplorePage.css';
 
 // Mock Data based on the UI screenshot
-const MOCK_CATEGORIES = ['All', 'Explore Mysore', 'Hidden Gems', 'Local Artisans', 'Hyperlocal Food', 'Heritage', 'Nature'];
+const MOCK_CATEGORIES = ['Explore Mysore', 'Hidden Gems', 'Local Artisans', 'Hyperlocal Food', 'Heritage', 'Nature'];
 
 const MOCK_PLACES = [
     // Top Tourism Places (Explore Mysore)
@@ -125,30 +125,57 @@ const MOCK_PLACES = [
     // Local Artisans
     {
         id: 12,
-        title: 'Rosewood Inlay Workshop',
-        description: 'Witness the delicate art of rosewood inlay work, a craft that has flourished in Mysuru for centuries.',
-        location: 'Ashoka Road',
-        rating: '4.4',
+        title: 'M.N. Radhakrishna Rao',
+        description: 'Sandalwood Carving: Intricate Deities & Dasara Processions',
+        location: 'Ashoka Road, Mysuru',
+        rating: '4.9',
         category: 'Local Artisans',
-        image: '/images/rosewood.png'
+        image: 'https://images.unsplash.com/photo-1582555172866-f73bb12a2ab3?q=80&w=800&auto=format&fit=crop'
     },
     {
         id: 13,
-        title: 'Mysore Silk Weaving Center',
-        description: 'See how the world-famous Mysore Silk sarees are woven with pure gold zari and natural silk.',
-        location: 'Mananthavady Road',
-        rating: '4.6',
+        title: 'Radha Devi',
+        description: 'Silk Weaving: Gold Zari Sarees from KSIC Factory lineage',
+        location: 'Ramanagara Lineage',
+        rating: '4.8',
         category: 'Local Artisans',
-        image: '/images/mysore_silk.png'
+        image: 'https://images.unsplash.com/photo-1583391733956-3750e0ff4e8b?q=80&w=800&auto=format&fit=crop'
     },
     {
         id: 14,
-        title: 'Sandalwood Oil Factory',
-        description: 'Visit the Government Sandalwood Oil Factory to see how the "Liquid Gold" is distilled.',
-        location: 'Ashokapuram',
-        rating: '4.5',
+        title: 'R.G. Singh',
+        description: 'Mysore Painting: Gesso Work & Gold Leaf',
+        location: 'Saraswathipuram',
+        rating: '4.9',
         category: 'Local Artisans',
-        image: '/images/sandalwood.png'
+        image: 'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?q=80&w=800&auto=format&fit=crop'
+    },
+    {
+        id: 14.1,
+        title: 'Arun Yogiraj',
+        description: 'Stone Sculpture: Idol Making & Temple Architecture',
+        location: 'Lakshmipuram',
+        rating: '5.0',
+        category: 'Local Artisans',
+        image: 'https://images.unsplash.com/photo-1590736934523-9426f83ec891?q=80&w=800&auto=format&fit=crop'
+    },
+    {
+        id: 14.2,
+        title: 'Lakshmiamma',
+        description: 'Incense Making: Hand-rolled Masala Battis',
+        location: 'Devaraja Market',
+        rating: '4.7',
+        category: 'Local Artisans',
+        image: 'https://images.unsplash.com/photo-1602928321679-560bb453f190?q=80&w=800&auto=format&fit=crop'
+    },
+    {
+        id: 14.3,
+        title: 'K. Shetty',
+        description: 'Traditional Pottery: Earthenware Cook pots',
+        location: 'Potters Colony',
+        rating: '4.6',
+        category: 'Local Artisans',
+        image: 'https://images.unsplash.com/photo-1621252179027-94459d278660?q=80&w=800&auto=format&fit=crop'
     },
 
     // Hyperlocal Food
@@ -178,15 +205,43 @@ const MOCK_PLACES = [
         rating: '4.7',
         category: 'Heritage',
         image: '/images/devaraja_market.png'
+    },
+
+    // Nature
+    {
+        id: 18,
+        title: 'Karanji Lake',
+        description: 'A picturesque lake with a butterfly park and India\'s largest walk-through aviary.',
+        location: 'Near Mysore Zoo',
+        rating: '4.6',
+        category: 'Nature',
+        image: 'https://images.unsplash.com/photo-1590418606746-018840fb9cd0?q=80&w=800&auto=format&fit=crop'
+    },
+    {
+        id: 19,
+        title: 'Kukkarahalli Lake',
+        description: 'A serene lake beloved by morning walkers and birdwatchers in the heart of the University area.',
+        location: 'Saraswathipuram',
+        rating: '4.8',
+        category: 'Nature',
+        image: 'https://images.unsplash.com/photo-1622322062691-766548773e35?q=80&w=800&auto=format&fit=crop'
+    },
+    {
+        id: 20,
+        title: 'Lingabudi Lake',
+        description: 'A heritage lake known for its rich biodiversity and ancient stone steps.',
+        location: 'Ramakrishna Nagar',
+        rating: '4.5',
+        category: 'Nature',
+        image: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?q=80&w=800&auto=format&fit=crop'
     }
 ];
 
 const ExplorePage = () => {
-    const [activeTab, setActiveTab] = useState('All');
+    const [activeTab, setActiveTab] = useState('Explore Mysore');
 
     const filteredPlaces = MOCK_PLACES.filter(place => {
-        const matchesCategory = activeTab === 'All' || place.category === activeTab;
-        return matchesCategory;
+        return place.category === activeTab;
     });
 
     return (
@@ -199,7 +254,7 @@ const ExplorePage = () => {
                 </button>
             </div>
 
-            {/* Top Category Swiper (replacing old type-switcher) */}
+            {/* Top Category Swiper */}
             <div className="container py-2 overflow-x-auto no-scrollbar">
                 <div className="type-tab-switcher category-tab-switcher">
                     {MOCK_CATEGORIES.map(category => (
@@ -234,7 +289,7 @@ const ExplorePage = () => {
                 {filteredPlaces.length === 0 && (
                     <div className="text-center py-20 text-secondary">
                         <div className="mb-2">✨</div>
-                        No {displayType === 'hidden' ? 'hidden gems' : 'places'} found here yet.
+                        No places found here yet.
                     </div>
                 )}
             </div>
