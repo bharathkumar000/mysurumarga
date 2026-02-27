@@ -15,7 +15,7 @@ const MOCK_PLACES = [
         location: 'Ashoka Road',
         rating: '4.4',
         category: 'Local Artisans',
-        image: 'https://images.unsplash.com/photo-1542898950-eafa65eac8ba?auto=format&fit=crop&q=80&w=800'
+        image: '/images/rosewood.png'
     },
     {
         id: 2,
@@ -24,7 +24,7 @@ const MOCK_PLACES = [
         location: 'Sayyaji Rao Road',
         rating: '4.9',
         category: 'Hyperlocal Food',
-        image: 'https://images.unsplash.com/photo-1551024601-bec78aea704b?auto=format&fit=crop&q=80&w=800' // Using dessert placeholder
+        image: '/images/mysore_pak.png'
     },
     {
         id: 3,
@@ -33,7 +33,7 @@ const MOCK_PLACES = [
         location: 'Chamundi Hills',
         rating: '4.8',
         category: 'Hidden Gems',
-        image: 'https://images.unsplash.com/photo-1629235928739-1fb4d75471bd?auto=format&fit=crop&q=80&w=800' // Using sunset/sunrise placeholder
+        image: '/images/chamundi_hills.png'
     },
     {
         id: 4,
@@ -42,7 +42,7 @@ const MOCK_PLACES = [
         location: 'Srirangapatna',
         rating: '4.5',
         category: 'Heritage',
-        image: 'https://images.unsplash.com/photo-1564507592333-c60657eea523?auto=format&fit=crop&q=80&w=800' // Using taj mahal placeholder indicating heritage
+        image: '/images/srirangapatna.png'
     }
 ];
 
