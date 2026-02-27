@@ -1,11 +1,26 @@
 import { useState } from 'react';
-import { Search, SlidersHorizontal, Settings2 } from 'lucide-react';
+import {
+    Search,
+    Settings2,
+    Sparkles,
+    Palette,
+    UtensilsCrossed,
+    MapPin,
+    Landmark,
+    Trees,
+    LayoutGrid
+} from 'lucide-react';
 import PlaceCard from '../components/PlaceCard';
-import Chip from '../components/Chip';
 import './ExplorePage.css';
 
-// Mock Data based on the UI screenshot
-const MOCK_CATEGORIES = ['Explore Mysore', 'Hidden Gems', 'Local Artisans', 'Hyperlocal Food', 'Heritage', 'Nature'];
+const CATEGORY_ITEMS = [
+    { id: 'Explore Mysore', label: 'Explore', icon: LayoutGrid, color: '#f1f5f9', iconColor: '#64748b' },
+    { id: 'Hidden Gems', label: 'Hidden Gems', icon: Sparkles, color: '#fffbeb', iconColor: '#d97706' },
+    { id: 'Local Artisans', label: 'Artisans', icon: Palette, color: '#fff1f2', iconColor: '#e11d48' },
+    { id: 'Hyperlocal Food', label: 'Food', icon: UtensilsCrossed, color: '#ecfdf5', iconColor: '#059669' },
+    { id: 'Heritage', label: 'Heritage', icon: Landmark, color: '#fef3c7', iconColor: '#92400e' },
+    { id: 'Nature', label: 'Nature', icon: Trees, color: '#f0fdf4', iconColor: '#16a34a' },
+];
 
 const MOCK_PLACES = [
     // Top Tourism Places (Explore Mysore)
@@ -254,16 +269,27 @@ const ExplorePage = () => {
                 </button>
             </div>
 
-            {/* Top Category Swiper */}
-            <div className="container py-2 overflow-x-auto no-scrollbar">
-                <div className="type-tab-switcher category-tab-switcher">
-                    {MOCK_CATEGORIES.map(category => (
+            {/* Browse Categories Section */}
+            <div className="container py-4">
+                <div className="flex justify-between items-center mb-6">
+                    <h2 className="text-xl font-bold">Browse Categories</h2>
+                    <button className="view-all-pill">VIEW ALL</button>
+                </div>
+
+                <div className="categories-scroll-row no-scrollbar">
+                    {CATEGORY_ITEMS.map((item) => (
                         <button
-                            key={category}
-                            className={`type-tab ${activeTab === category ? 'active' : ''}`}
-                            onClick={() => setActiveTab(category)}
+                            key={item.id}
+                            className={`category-circle-item ${activeTab === item.id ? 'active' : ''}`}
+                            onClick={() => setActiveTab(item.id)}
                         >
-                            {category}
+                            <div
+                                className="circle-icon-box"
+                                style={{ backgroundColor: item.color }}
+                            >
+                                <item.icon size={26} style={{ color: item.iconColor }} />
+                            </div>
+                            <span className="category-circle-label">{item.label}</span>
                         </button>
                     ))}
                 </div>

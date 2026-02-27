@@ -21,6 +21,11 @@ function BottomNav() {
                     <span className="nav-label">Saved</span>
                 </NavLink>
 
+                <NavLink to="/trava-ai" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
+                    <Sparkles className="nav-icon ai-sparkle" />
+                    <span className="nav-label">Planner</span>
+                </NavLink>
+
                 <NavLink to="/profile" className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}>
                     <User className="nav-icon" />
                     <span className="nav-label">Profile</span>

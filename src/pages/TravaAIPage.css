@@ -14,7 +14,7 @@
 .ai-header {
     background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
     color: white;
-    padding: 2.5rem 1.5rem;
+    padding: 2rem 1.5rem;
     text-align: center;
     border-radius: 0 0 var(--radius-lg) var(--radius-lg);
     box-shadow: var(--shadow-md);
@@ -30,6 +30,29 @@
     gap: 0.75rem;
 }
 
+/* View Switcher */
+.view-switcher {
+    display: flex;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 0.25rem;
+    border-radius: var(--radius-full);
+}
+
+.switch-btn {
+    padding: 0.4rem 1.25rem;
+    border-radius: var(--radius-full);
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: all 0.2s;
+    color: white;
+}
+
+.switch-btn.active {
+    background: white;
+    color: #8b5cf6;
+}
+
+/* Chat Styles */
 .chat-container {
     flex: 1;
     overflow-y: auto;
@@ -144,4 +167,130 @@
 .suggestion-chip:hover {
     border-color: #8b5cf6;
     color: #8b5cf6;
+}
+
+/* Planner Layout */
+.planner-container {
+    max-width: 600px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+.planner-card {
+    margin-top: -1rem;
+    background: white;
+    border-radius: 24px;
+    padding: 2rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-color);
+    animation: slideUp 0.3s ease-out;
+}
+
+.planner-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.planner-card-header h3 {
+    font-size: 1.25rem;
+    font-weight: 800;
+    flex: 1;
+}
+
+.days-tag {
+    background: rgba(217, 119, 6, 0.1);
+    color: var(--primary);
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.itinerary-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.itinerary-day {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem;
+    border-radius: var(--radius-lg);
+    background-color: #f8fafc;
+    transition: all 0.2s;
+}
+
+.day-number {
+    width: 44px;
+    height: 44px;
+    background-color: white;
+    border: 2px solid #8b5cf6;
+    color: #8b5cf6;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+}
+
+.day-content {
+    flex: 1;
+}
+
+.day-content h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.day-spots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.spot-item {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+    color: #64748b;
+    background: white;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #e2e8f0;
+}
+
+.primary-btn-wide {
+    width: 100%;
+    background: #0f172a;
+    color: white;
+    padding: 1rem;
+    border-radius: 16px;
+    font-weight: 700;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
