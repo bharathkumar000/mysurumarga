@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { User, ShieldCheck, Briefcase, Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import './LoginPage.css';
 
 function LoginPage() {
-    const [role, setRole] = useState('user'); // user, admin, partner
+    const [role, setRole] = useState('user'); // user, partner
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
 
@@ -21,92 +22,99 @@ function LoginPage() {
 
         const target = credentials[role];
 
-        if (email === target.id && password === target.pass) {
-            console.log(`Successfully logged in as ${role}`);
+        if (email === target?.id && password === target?.pass) {
             if (role === 'partner') {
                 navigate('/partner');
             } else {
                 navigate('/explore');
             }
         } else {
-            setError(`Invalid credentials for ${role.toUpperCase()} role.`);
+            setError(`Authentication failed for ${role.toUpperCase()} role.`);
         }
     };
 
     return (
         <div className="login-page">
-            <div className="login-card">
-                <div className="login-header">
-                    <span className="login-logo">MYSURU MARGA</span>
-                    <h2>Welcome Back</h2>
-                    <p>Login to your account to continue</p>
+            <div className="login-container">
+                {/* Left Side: Hero Section */}
+                <div className="login-hero">
+                    <div className="hero-overlay">
+                        <span className="hero-tagline">BEYOND THE PALACE</span>
+                        <h1 className="hero-title">Discover the<br />Soul of Mysuru</h1>
+                        <p className="hero-desc">
+                            Uncover hidden gems, local artisans & authentic<br />
+                            experiences that usually go unexplored.
+                        </p>
+                    </div>
                 </div>
 
-                <div className="role-selector">
-                    <button
-                        className={`role-btn ${role === 'user' ? 'active' : ''}`}
-                        onClick={() => { setRole('user'); setError(''); }}
-                    >
-                        User
-                    </button>
-                    <button
-                        className={`role-btn ${role === 'partner' ? 'active' : ''}`}
-                        onClick={() => { setRole('partner'); setError(''); }}
-                    >
-                        Partner
-                    </button>
-                </div>
+                {/* Right Side: Login Content */}
+                <div className="login-content">
+                    <div className="login-form-wrapper">
+                        <header className="login-header">
+                            <div className="brand-logo">
+                                Mysuru <span>Marga</span>
+                            </div>
+                            <h2>Welcome Back</h2>
+                            <p className="access-label">ACCESS THE HERITAGE CORE</p>
+                        </header>
 
-                {error && (
-                    <div style={{
-                        backgroundColor: '#fee2e2',
-                        color: '#dc2626',
-                        padding: '0.75rem',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: '0.875rem',
-                        fontWeight: '500',
-                        textAlign: 'center'
-                    }}>
-                        {error}
-                    </div>
-                )}
-
-                <form className="login-form" onSubmit={handleSubmit}>
-                    <div className="form-group">
-                        <label>ID / Email Address</label>
-                        <div className="input-with-icon">
-                            <Mail className="input-icon" size={18} />
-                            <input
-                                type="text"
-                                placeholder="Enter ID or Email"
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                                required
-                            />
+                        <div className="role-pills">
+                            <button
+                                className={`role-pill ${role === 'user' ? 'active' : ''}`}
+                                onClick={() => setRole('user')}
+                            >
+                                Traveler
+                            </button>
+                            <button
+                                className={`role-pill ${role === 'partner' ? 'active' : ''}`}
+                                onClick={() => setRole('partner')}
+                            >
+                                Heritage Partner
+                            </button>
                         </div>
+
+                        {error && <div className="login-error">{error}</div>}
+
+                        <form className="heritage-form" onSubmit={handleSubmit}>
+                            <div className="heritage-input-group">
+                                <Mail className="field-icon" size={20} />
+                                <input
+                                    type="text"
+                                    placeholder="Email Address"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    required
+                                />
+                            </div>
+
+                            <div className="heritage-input-group">
+                                <Lock className="field-icon" size={20} />
+                                <input
+                                    type={showPassword ? "text" : "password"}
+                                    placeholder="Password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    required
+                                />
+                                <button
+                                    type="button"
+                                    className="toggle-visibility"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                </button>
+                            </div>
+
+                            <button type="submit" className="login-btn-black">
+                                ENTER THE GATES
+                            </button>
+                        </form>
+
+                        <footer className="login-form-footer">
+                            <p>NEW TO THE CITY? <a href="#">Register Now</a></p>
+                        </footer>
                     </div>
-
-                    <div className="form-group">
-                        <label>Password</label>
-                        <div className="input-with-icon">
-                            <Lock className="input-icon" size={18} />
-                            <input
-                                type="password"
-                                placeholder="••••••••"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                required
-                            />
-                        </div>
-                    </div>
-
-                    <button type="submit" className="login-submit">
-                        Sign In as {role.charAt(0).toUpperCase() + role.slice(1)}
-                    </button>
-                </form>
-
-                <div className="login-footer">
-                    <p>Don't have an account? <a href="#">Sign Up</a></p>
                 </div>
             </div>
         </div>
