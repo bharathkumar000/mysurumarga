@@ -107,6 +107,8 @@
 .card-desc {
     margin: 0.5rem 0 0 0;
     line-height: 1.4;
+    font-size: 0.75rem;
+    /* text-xs equivalent */
     /* Truncate text to 2 lines */
     display: -webkit-box;
     -webkit-line-clamp: 2;

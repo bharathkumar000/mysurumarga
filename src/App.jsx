@@ -17,7 +17,7 @@ function AppLayout() {
 
   return (
     <>
-      <div className={hideNav && location.pathname.startsWith('/partner') ? "" : "app-content"}>
+      <div className={hideNav ? "" : "app-content"}>
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/login" element={<LoginPage />} />

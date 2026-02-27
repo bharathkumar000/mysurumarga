@@ -47,7 +47,7 @@ function PlaceCard(place) {
             </div>
 
             <div className="card-content">
-                <h3 className="card-title text-lg font-semibold">{title}</h3>
+                <h3 className="card-title text-sm font-semibold">{title}</h3>
                 <p className="card-desc text-secondary text-sm mt-2">{description}</p>
 
                 <div className="card-footer flex justify-between items-center mt-4 text-xs">

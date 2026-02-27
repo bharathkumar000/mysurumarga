@@ -1,12 +1,13 @@
 .login-page {
+    width: 100vw;
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.7)), url('/images/login_bg.png');
+    background: linear-gradient(rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.4)), url('https://images.unsplash.com/photo-1590766940554-634a7ed41450?q=80&w=2600&auto=format&fit=crop');
     background-size: cover;
     background-position: center;
-    padding: 1.5rem;
+    background-repeat: no-repeat;
 }
 
 .login-card {
