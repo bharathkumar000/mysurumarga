@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./images/logo.png" alt="Mysuru Marga Logo" width="120" />
+  <img src="./images/logo-circle.png" alt="Mysuru Marga Logo" width="120" />
 
   # 🏰 Mysuru Marga
   ### *The Soulful Heritage Explorer*
@@ -30,8 +30,8 @@ Modern travelers often struggle with fragmented information, generic recommendat
 ### 🌎 Future Vision: Beyond Mysuru
 While we've started with the royal city of Mysuru, the architecture of Mysuru Marga is built to be **location-agnostic**. Our future roadmap includes scaling this platform to other heritage destinations worldwide, empowering travelers to discover the "Marga" (path) of any historical location with the same premium depth and local intelligence.
 
-> [!TIP]
-> 🏆 **Achievement**: Won **2nd Place** in a 24-hour State Level Hackathon at **Vidyavardhaka College of Engineering** - *Parivarthan* event.
+
+### 🏆 **Achievement**: Won **2nd Place** in a 24-hour State Level Hackathon at **Vidyavardhaka College of Engineering** - *Parivarthan* event.
 
 ---
 
