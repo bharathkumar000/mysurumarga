@@ -239,8 +239,8 @@ export const BottomNav = ({ activeTab, setActiveTab }) => {
                 <BottomNavItem
                     icon={MapIcon}
                     label={t('map')}
-                    active={activeTab === 'map'}
-                    onClick={() => setActiveTab('map')}
+                    active={activeTab === 'MapComponent'}
+                    onClick={() => setActiveTab('MapComponent')}
                 />
                 <BottomNavItem
                     icon={Heart}
@@ -709,7 +709,15 @@ export const FeedbackSection = ({ userEmail, onSuccess }) => {
 
 export const Hero = ({ onExploreClick }) => {
     return (
-        <div className="px-8 pt-8 pb-4 space-y-8 md:px-12 md:pt-12 md:pb-12">
+        <div className="px-8 pt-6 pb-4 space-y-6 md:px-12 md:pt-10 md:pb-8 flex flex-col items-center">
+            {/* Centered Logo in Hero Area */}
+            <div className="flex flex-col items-center gap-2 mb-2 animate-in fade-in slide-in-from-top-4 duration-1000">
+                <img src="/src/assets/logo-circle.png" alt="Logo" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
+                <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
+                    Mysuru <span className="text-mysore-600">Marga</span>
+                </h1>
+            </div>
+
             {/* Modern Search Bar */}
             <div className="relative group z-30 md:max-w-2xl md:mx-auto transform hover:-translate-y-1 transition-transform duration-300">
                 <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
@@ -737,7 +745,7 @@ export const Hero = ({ onExploreClick }) => {
             >
                 <div className="absolute inset-0 bg-gray-900 animate-pulse" /> {/* Loading state placeholder */}
                 <img
-                    src="/src/assets/mysore-palace-daytime.jpg"
+                    src="https://images.unsplash.com/photo-1621213340058-29227284b16c?q=80&w=2600&auto=format&fit=crop"
                     alt="Mysore Palace"
                     className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-[1.5s] ease-out"
                 />
@@ -811,6 +819,11 @@ export const Loader = ({ onFinish }) => {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center mysore-main-bg flex-col overflow-hidden transition-opacity duration-1000">
             <div className="relative flex flex-col items-center">
+                <img
+                    src="/src/assets/logo-circle.png"
+                    alt="Mysuru Marga Logo"
+                    className="w-24 h-24 mb-8 opacity-0 animate-fade-in-up object-contain"
+                />
 
                 {/* Logo Text */}
                 <div className="flex items-baseline space-x-3 z-10 scale-110 sm:scale-125">
@@ -1614,10 +1627,9 @@ export const PlaceDetails = ({ place, onBack, isSaved, onToggleSave, userEmail, 
                 </div>
             </div>
 
-            {/* Smart Navigation & Booking Bar */}
-            <div className="fixed bottom-0 inset-x-0 p-6 md:p-8 pt-12 md:pt-16 bg-gradient-to-t from-[#fcf6e5] via-[#fcf6e5]/98 dark:from-gray-950 dark:via-gray-950/98 to-transparent z-50">
-                <div className="max-w-4xl mx-auto flex flex-row gap-3 md:gap-4 items-stretch h-16 md:h-20">
-                    {/* Primary Direction Button */}
+            {/* Smart Navigation & Booking Bar - Compact Version */}
+            <div className="fixed bottom-0 inset-x-0 p-3 md:p-5 pt-6 md:pt-8 bg-gradient-to-t from-[#fcf6e5] via-[#fcf6e5]/98 dark:from-gray-950 dark:via-gray-950/98 to-transparent z-50">
+                <div className="max-w-3xl mx-auto flex flex-row gap-2 md:gap-3 items-stretch h-10 md:h-12">
                     <button
                         onClick={() => {
                             if (onGetDirections) {
@@ -1627,38 +1639,26 @@ export const PlaceDetails = ({ place, onBack, isSaved, onToggleSave, userEmail, 
                                 window.open(url, '_blank');
                             }
                         }}
-                        className="flex-[3] bg-black dark:bg-[#D4AF37] text-white dark:text-black font-black rounded-[2rem] flex items-center justify-center gap-2 md:gap-4 shadow-2xl hover:scale-[1.02] active:scale-95 transition-all group overflow-hidden"
+                        className="flex-[2] bg-black dark:bg-[#D4AF37] text-white dark:text-black font-black rounded-xl flex items-center justify-center gap-2 shadow-xl hover:scale-[1.02] active:scale-95 transition-all group overflow-hidden"
                     >
-                        <Compass className="w-5 h-5 md:w-6 md:h-6 animate-spin-slow group-hover:animate-spin" />
-                        <div className="text-left">
-                            <span className="hidden md:block text-[10px] uppercase tracking-widest opacity-60">Interactive Map</span>
-                            <span className="block text-[10px] md:text-xs uppercase tracking-[0.2em]">Get Directions</span>
-                        </div>
+                        <Compass className="w-4 h-4 md:w-5 md:h-5" />
+                        <span className="text-[7px] md:text-[9px] uppercase tracking-widest">Get Directions</span>
                     </button>
 
-                    {/* Quick Booking Options */}
                     <button
-                        onClick={() => {
-                            const url = `https://m.uber.com/ul/?action=setPickup&client_id=YOUR_CLIENT_ID&pickup=my_location&dropoff[formatted_address]=${place.title}+Mysore&dropoff[nickname]=${place.title}`;
-                            window.open(url, '_blank');
-                        }}
-                        className="flex-1 bg-white dark:bg-gray-800 border border-black/5 dark:border-white/5 rounded-[2rem] flex flex-col items-center justify-center gap-1 hover:bg-black hover:text-white dark:hover:bg-[#D4AF37] dark:hover:text-black transition-all group shadow-xl"
-                        title="Book via Uber"
+                        onClick={() => window.open(`https://m.uber.com/ul/?action=setPickup&pickup=my_location&dropoff[formatted_address]=${place.title}+Mysore`, '_blank')}
+                        className="flex-1 bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 rounded-xl flex flex-col items-center justify-center gap-0.5 hover:bg-black hover:text-white transition-all shadow-lg"
                     >
-                        <Car className="w-5 h-5 text-gray-400 group-hover:text-inherit" />
-                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest uppercase">Uber</span>
+                        <Car className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 group-hover:text-inherit" />
+                        <span className="text-[6px] md:text-[8px] font-black uppercase tracking-widest text-gray-500">Uber</span>
                     </button>
+
                     <button
-                        onClick={() => {
-                            // Rapido deep link simulation (generally rapido://)
-                            const url = `https://www.rapido.bike/`;
-                            window.open(url, '_blank');
-                        }}
-                        className="flex-1 bg-white dark:bg-gray-800 border border-black/5 dark:border-white/5 rounded-[2rem] flex flex-col items-center justify-center gap-1 hover:bg-black hover:text-white dark:hover:bg-[#D4AF37] dark:hover:text-black transition-all group shadow-xl"
-                        title="Book via Rapido"
+                        onClick={() => window.open(`https://www.rapido.bike/`, '_blank')}
+                        className="flex-1 bg-white dark:bg-gray-800 border border-black/10 dark:border-white/10 rounded-xl flex flex-col items-center justify-center gap-0.5 hover:bg-black hover:text-white transition-all shadow-lg"
                     >
-                        <Bike className="w-5 h-5 text-gray-400 group-hover:text-inherit" />
-                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest">Rapido</span>
+                        <Bike className="w-3.5 h-3.5 md:w-4 md:h-4 text-gray-400 group-hover:text-inherit" />
+                        <span className="text-[6px] md:text-[8px] font-black uppercase tracking-widest text-gray-500">Rapido</span>
                     </button>
                 </div>
             </div>
@@ -4036,11 +4036,13 @@ Greetings! As your local companion, I've curated a ${days}-day plan for your par
                 </div>
             </div>
 
+            <div className="h-[1.5px] w-full bg-[#D4AF37]/20 relative z-10" /> {/* Trava Header Separator */}
+
             {/* Content Container */}
             <div ref={contentRef} className="flex-1 overflow-y-auto overflow-x-hidden relative">
                 {/* Subtle Background pattern */}
                 <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/asfalt-dark.pattern')]"></div>
-                {mode === 'chat' ? renderChat() : mode === 'planner' ? renderPlanner() : mode === 'budget' ? renderBudgetSplitter() : renderInvite()}
+                {mode === 'chat' ? renderChat() : mode === 'planner' ? renderPlanner() : mode === 'invite' ? renderInvite() : renderBudgetSplitter()}
             </div>
         </div>
     );
@@ -6017,9 +6019,14 @@ function App() {
                 ? (e.changedTouches[0].clientX + e.changedTouches[1].clientX) / 2
                 : e.changedTouches[0].clientX;
             const deltaX = touchEndX - touchStartX;
-            if (Math.abs(deltaX) > 100) {
-                if (deltaX > 0) handleBack();
-                else handleForward();
+            if (Math.abs(deltaX) > 80) { // Threshold for swipe
+                if (deltaX > 0) {
+                    // Swipe right -> Back
+                    handleBack();
+                } else {
+                    // Swipe left -> Forward
+                    handleForward();
+                }
             }
             touchStartX = 0;
         };
