@@ -19,11 +19,19 @@
   ---
 </div>
 
-![Mysuru Marga Hero Banner](./images/hero_banner.png)
 
 ## ✨ Overview
 
 **Mysuru Marga** is a premium, state-of-the-art web application dedicated to exploring the rich heritage, hidden gems, and local artisans of Mysuru. Built for the modern traveler, it blends traditional storytelling with cutting-edge technology to provide a seamless, soulful journey through the "Heritage City."
+
+### 🎯 The Problem We're Solving
+Modern travelers often struggle with fragmented information, generic recommendations, and a lack of deep cultural connection. **Mysuru Marga** solves this by consolidating heritage data, AI-driven personalization, and local business integration into a single, unified experience.
+
+### 🌎 Future Vision: Beyond Mysuru
+While we've started with the royal city of Mysuru, the architecture of Mysuru Marga is built to be **location-agnostic**. Our future roadmap includes scaling this platform to other heritage destinations worldwide, empowering travelers to discover the "Marga" (path) of any historical location with the same premium depth and local intelligence.
+
+> [!TIP]
+> 🏆 **Achievement**: Won **2nd Place** in a 24-hour State Level Hackathon at **Vidyavardhaka College of Engineering** - *Parivarthan* event.
 
 ---
 
@@ -69,7 +77,7 @@
 | **🏰 Unified Heritage Engine** | Lightning-fast, consolidated architecture for premium performance. |
 | **🌙 Sovereign Dark Mode** | A custom-crafted dark theme inspired by the royalty of Mysuru. |
 | **🗺️ Interactive Heritage Map** | Real-time spatial exploration of monuments and hidden spots. |
-| **🤖 AI Heritage Guide** | Interactive chat interface powered by heritage-aware AI models. |
+| **✨ Trava AI** | Intelligent, heritage-aware AI companion for personalized exploration. |
 | **🏢 Partner Dashboard** | Empowering local business owners to showcase their spots. |
 | **🛡️ Admin Command Center** | Complete system oversight with secure administrative controls. |
 
