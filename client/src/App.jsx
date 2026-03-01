@@ -712,7 +712,7 @@ export const Hero = ({ onExploreClick }) => {
         <div className="px-8 pt-6 pb-4 space-y-6 md:px-12 md:pt-10 md:pb-8 flex flex-col items-center">
             {/* Centered Logo in Hero Area */}
             <div className="flex flex-col items-center gap-2 mb-2 animate-in fade-in slide-in-from-top-4 duration-1000">
-                <img src="/src/assets/logo-circle.png" alt="Logo" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
+                <img src="/src/assets/logo-circle-removebg.png" alt="Logo" className="w-12 h-12 md:w-16 md:h-16 object-contain" />
                 <h1 className="text-2xl md:text-3xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
                     Mysuru <span className="text-mysore-600">Marga</span>
                 </h1>
@@ -745,7 +745,7 @@ export const Hero = ({ onExploreClick }) => {
             >
                 <div className="absolute inset-0 bg-gray-900 animate-pulse" /> {/* Loading state placeholder */}
                 <img
-                    src="https://images.unsplash.com/photo-1621213340058-29227284b16c?q=80&w=2600&auto=format&fit=crop"
+                    src="/src/assets/mysore-palace-daytime.jpg"
                     alt="Mysore Palace"
                     className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-[1.5s] ease-out"
                 />
@@ -777,7 +777,6 @@ export const Hero = ({ onExploreClick }) => {
                             <span className="italic relative inline-block">
                                 Soul of Mysuru
                             </span>
-
                         </h2>
 
                         <p className="text-gray-200 text-sm md:text-lg font-medium leading-relaxed max-w-lg drop-shadow-md animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
@@ -820,7 +819,7 @@ export const Loader = ({ onFinish }) => {
         <div className="fixed inset-0 z-[100] flex items-center justify-center mysore-main-bg flex-col overflow-hidden transition-opacity duration-1000">
             <div className="relative flex flex-col items-center">
                 <img
-                    src="/src/assets/logo-circle.png"
+                    src="/src/assets/logo-circle-removebg.png"
                     alt="Mysuru Marga Logo"
                     className="w-24 h-24 mb-8 opacity-0 animate-fade-in-up object-contain"
                 />
@@ -1252,7 +1251,7 @@ export const Navbar = ({ onProfileClick, activeTab, setActiveTab }) => {
         <nav className="flex justify-between items-center px-4 md:px-8 h-16 md:h-[72px] transition-colors duration-200">
             <div className="flex flex-col cursor-pointer shrink-0" onClick={() => setActiveTab && setActiveTab('home')}>
                 <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
-                    <img src="/src/assets/logo-circle.png" alt="Logo" className="w-8 h-8 md:w-9 md:h-9 object-contain" />
+                    <img src="/src/assets/logo-circle-removebg.png" alt="Logo" className="w-8 h-8 md:w-9 md:h-9 object-contain" />
                     Mysuru <span className="text-mysore-600">Marga</span>
                 </h1>
             </div>
@@ -2813,17 +2812,17 @@ export const AuthPage = ({ onLogin, onSignUp }) => {
                                         <div className="space-y-4">
                                             <div className="relative group">
                                                 <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
-                                                <input type="text" id="signup-fullname" name="fullName" value={signUpData.fullName} onChange={handleSignUpChange} placeholder="Full Name" autoComplete="name" className={`w-full pl-12 pr-4 py-4 border ${signUpErrors.fullName ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`} />
+                                                <input type="text" id="signup-fullname" name="fullName" value={signUpData.fullName} onChange={handleSignUpChange} placeholder="Full Name" autoComplete="off" className={`w-full pl-12 pr-4 py-4 border ${signUpErrors.fullName ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`} />
                                                 {signUpErrors.fullName && <p className="text-[10px] text-red-500 font-bold mt-1 px-4">{signUpErrors.fullName}</p>}
                                             </div>
                                             <div className="relative group">
                                                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
-                                                <input type="email" id="signup-email" name="email" value={signUpData.email} onChange={handleSignUpChange} placeholder="Email" autoComplete="email" className={`w-full pl-12 pr-4 py-4 border ${signUpErrors.email ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`} />
+                                                <input type="email" id="signup-email" name="email" value={signUpData.email} onChange={handleSignUpChange} placeholder="Email" autoComplete="off" className={`w-full pl-12 pr-4 py-4 border ${signUpErrors.email ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`} />
                                                 {signUpErrors.email && <p className="text-[10px] text-red-500 font-bold mt-1 px-4">{signUpErrors.email}</p>}
                                             </div>
                                             <div className="relative group">
                                                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
-                                                <input type="tel" id="signup-phone" name="phone" value={signUpData.phone} onChange={handleSignUpChange} placeholder="Phone Number" autoComplete="tel" className="w-full pl-12 pr-4 py-4 border border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all" />
+                                                <input type="tel" id="signup-phone" name="phone" value={signUpData.phone} onChange={handleSignUpChange} placeholder="Phone Number" autoComplete="off" className="w-full pl-12 pr-4 py-4 border border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all" />
                                             </div>
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="relative">
@@ -2834,7 +2833,7 @@ export const AuthPage = ({ onLogin, onSignUp }) => {
                                                         value={signUpData.password}
                                                         onChange={handleSignUpChange}
                                                         placeholder="Password"
-                                                        autoComplete="new-password"
+                                                        autoComplete="off"
                                                         className={`w-full pl-5 pr-10 py-4 border ${signUpErrors.password ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`}
                                                     />
                                                     <button
@@ -2854,7 +2853,7 @@ export const AuthPage = ({ onLogin, onSignUp }) => {
                                                         value={signUpData.confirmPassword}
                                                         onChange={handleSignUpChange}
                                                         placeholder="Confirm"
-                                                        autoComplete="new-password"
+                                                        autoComplete="off"
                                                         className={`w-full pl-5 pr-10 py-4 border ${signUpErrors.confirmPassword ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`}
                                                     />
                                                     <button
@@ -2927,7 +2926,7 @@ export const AuthPage = ({ onLogin, onSignUp }) => {
                                             value={loginIdentifier}
                                             onChange={(e) => setLoginIdentifier(e.target.value)}
                                             placeholder="Email Address"
-                                            autoComplete="email"
+                                            autoComplete="off"
                                             className="w-full pl-16 pr-6 py-6 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all shadow-inner"
                                             required
                                         />
@@ -2941,7 +2940,7 @@ export const AuthPage = ({ onLogin, onSignUp }) => {
                                             value={loginPassword}
                                             onChange={(e) => setLoginPassword(e.target.value)}
                                             placeholder="Password"
-                                            autoComplete="current-password"
+                                            autoComplete="off"
                                             className="w-full pl-16 pr-16 py-6 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all shadow-inner"
                                             required
                                         />
@@ -2964,12 +2963,27 @@ export const AuthPage = ({ onLogin, onSignUp }) => {
                                         'Enter The Gates'
                                     )}
                                 </button>
+                                <div className="mt-8 flex flex-col items-center gap-3">
+                                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Demo Credentials (ID - Pass)</p>
+                                    <div className="flex flex-wrap justify-center gap-4">
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">User</span>
+                                            <span className="text-xs font-black text-[#D4AF37]">1 - 1</span>
+                                        </div>
+                                        <div className="w-[1px] h-6 bg-gray-100 dark:bg-gray-800 self-center"></div>
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Partner</span>
+                                            <span className="text-xs font-black text-[#D4AF37]">2 - 2</span>
+                                        </div>
+                                        <div className="w-[1px] h-6 bg-gray-100 dark:bg-gray-800 self-center"></div>
+                                        <div className="flex flex-col items-center">
+                                            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest">Admin</span>
+                                            <span className="text-xs font-black text-[#D4AF37]">3 - 3</span>
+                                        </div>
+                                    </div>
+                                </div>
                             </form>
 
-                            <p className="mt-16 text-center text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
-                                New to the City? {' '}
-                                <button onClick={() => setIsSignUp(true)} className="text-[#D4AF37] ml-2 hover:underline">Register Now</button>
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -6360,7 +6374,7 @@ function App() {
                         <span className="text-xs uppercase tracking-[0.2em] font-black">by TECH NEXUS</span>
                     </div>
                     <div className="mt-4 opacity-30 grayscale contrast-125">
-                        <img src="/src/assets/logo-circle.png" alt="Tech Nexus" className="w-8 h-8 mx-auto" />
+                        <img src="/src/assets/logo-circle-removebg.png" alt="Tech Nexus" className="w-8 h-8 mx-auto" />
                     </div>
                 </footer>
             </div>
@@ -6477,7 +6491,7 @@ function App() {
                         <span className="text-xs uppercase tracking-[0.2em] font-black">by TECH NEXUS</span>
                     </div>
                     <div className="mt-4 opacity-30 grayscale contrast-125">
-                        <img src="/src/assets/logo-circle.png" alt="Tech Nexus" className="w-8 h-8 mx-auto" />
+                        <img src="/src/assets/logo-circle-removebg.png" alt="Tech Nexus" className="w-8 h-8 mx-auto" />
                     </div>
                 </footer>
             </div>
