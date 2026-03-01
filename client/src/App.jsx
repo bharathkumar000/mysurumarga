@@ -266,8 +266,8 @@ export const CategoryItem = ({ icon: _Icon, label, color, bgColor, onClick, isSe
         onClick={() => onClick && onClick(label)}
         className="flex flex-col items-center gap-3 min-w-[80px] group cursor-pointer"
     >
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md ${bgColor} ${isSelected ? 'ring-4 ring-[#D4AF37] shadow-xl scale-110' : ''}`}>
-            <_Icon className={`w-7 h-7 ${color}`} />
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md ${bgColor} ${isSelected ? 'ring-[3px] ring-black dark:ring-[#D4AF37] shadow-xl scale-110 border-2 border-white dark:border-gray-900' : ''}`}>
+            <_Icon className={`w-6 h-6 ${color}`} />
         </div>
         <span className={`text-[11px] font-bold text-center tracking-tight transition-colors ${isSelected ? 'text-[#D4AF37] font-black' : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'}`}>{label}</span>
     </div>
@@ -412,8 +412,8 @@ export const Explore = ({ places, onCardClick, savedPlaceIds = [], onToggleSave,
 
     return (
         <div className="pb-32 bg-transparent min-h-screen">
-            {/* Fixed/Sticky Header for Explore */}
-            <div className="sticky top-0 z-40 bg-[#fef9e7]/90 dark:bg-black/90 backdrop-blur-3xl border-b border-[#D4AF37]/10 transition-all shadow-lg pb-2">
+            {/* Scrollable Header for Explore */}
+            <div className="relative z-40 bg-[#fef9e7] dark:bg-black transition-all shadow-sm pb-2">
                 <div className="px-6 md:px-12 py-4 md:py-6 max-w-7xl mx-auto w-full">
                     <div className="relative w-full">
                         <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -479,7 +479,7 @@ export const Explore = ({ places, onCardClick, savedPlaceIds = [], onToggleSave,
 export const FeaturedCard = ({ place, onClick, isSaved, onToggleSave }) => (
     <div
         onClick={() => onClick(place)}
-        className="flex-shrink-0 w-64 md:w-full bg-white/10 dark:bg-black/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-[2rem] overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_40px_-10px_rgba(212,175,55,0.2)] scale-100 hover:scale-[1.02] transition-all duration-500 ease-out group cursor-pointer relative"
+        className="flex-shrink-0 w-64 md:w-full bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-xl border border-white/20 dark:border-amber-900/30 rounded-[2rem] overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_40px_-10px_rgba(212,175,55,0.2)] scale-100 hover:scale-[1.02] transition-all duration-500 ease-out group cursor-pointer relative"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -650,7 +650,7 @@ export const FeedbackSection = ({ userEmail, onSuccess }) => {
     };
 
     return (
-        <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl rounded-3xl p-6 border border-gray-100 dark:border-gray-700 shadow-xl">
+        <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-xl rounded-3xl p-6 border border-white/20 dark:border-amber-900/30 shadow-xl">
             <div className="flex items-center gap-3 mb-6">
                 <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-2xl">
                     <MessageSquare className="h-5 w-5 text-amber-600" />
@@ -870,11 +870,42 @@ export const MapComponent = ({ places, destination, interactive = true }) => {
 
     const categories = ['All', 'Nature', 'Heritage', 'Food', 'Artisan', 'Stay'];
 
-    const filteredPlaces = (places || []).filter(place => {
-        const matchesSearch = place.title.toLowerCase().includes(searchQuery.toLowerCase());
-        const matchesCategory = selectedCategory === 'All' || place.category === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
+    // Custom Marker Icons for Categories
+    const getMarkerIcon = (category) => {
+        const color = category === 'Nature' ? '#10b981' :
+            category === 'Heritage' ? '#b45309' :
+                category === 'Food' ? '#059669' :
+                    category === 'Artisan' ? '#e11d48' :
+                        category === 'Stay' ? '#7c3aed' :
+                            category === 'Hidden Gem' ? '#D4AF37' : '#2563eb';
+
+        return L.divIcon({
+            html: `<div style="
+                background-color: white;
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border: 2px solid ${color};
+            ">
+                <div style="color: ${color}; font-size: 16px;">
+                    ${category === 'Nature' ? '🌲' :
+                    category === 'Heritage' ? '🏛️' :
+                        category === 'Food' ? '🍴' :
+                            category === 'Artisan' ? '🎨' :
+                                category === 'Stay' ? '🏨' :
+                                    category === 'Hidden Gem' ? '✨' : '📍'}
+                </div>
+            </div>`,
+            className: 'custom-div-icon',
+            iconSize: [32, 32],
+            iconAnchor: [16, 16],
+            popupAnchor: [0, -16]
+        });
+    };
 
     const suggestions = searchQuery.length > 1
         ? (places || []).filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
@@ -913,273 +944,276 @@ export const MapComponent = ({ places, destination, interactive = true }) => {
     const zoom = activePlace ? 16 : 13;
 
     return (
-        <div className="w-full relative overflow-hidden bg-gray-100" style={{ height: 'calc(100vh - 100px)' }}>
-            {/* Search Bar Overlay - Only if Interactive */}
-            {interactive && (
-                <div className={`absolute top-4 left-4 right-4 z-[1000] space-y-3 transition-all duration-500 ${showBookingPanel ? '-translate-y-24 opacity-0' : 'translate-y-0 opacity-100'}`}>
-                    <div className="relative group">
-                        <div className="absolute inset-0 bg-white/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity rounded-full"></div>
-                        <div className="relative flex items-center bg-white dark:bg-gray-800 shadow-2xl rounded-2xl border border-gray-100 dark:border-gray-700 p-1">
-                            <div className="p-3 text-gray-400">
-                                <Search size={20} />
+        <div className="px-4 md:px-8 py-4 w-full bg-transparent min-h-screen flex flex-col">
+            <div className="w-full relative overflow-hidden bg-[#FEF9E7]/80 dark:bg-amber-950/10 rounded-[2.5rem] shadow-2xl border border-[#D4AF37]/20 flex-1 min-h-[500px]">
+                {/* Search Bar Overlay - Only if Interactive */}
+                {interactive && (
+                    <div className={`absolute top-4 left-4 right-4 z-[1000] space-y-3 transition-all duration-500 ${showBookingPanel ? '-translate-y-24 opacity-0' : 'translate-y-0 opacity-100'}`}>
+                        <div className="relative group">
+                            <div className="absolute inset-0 bg-white/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity rounded-full"></div>
+                            <div className="relative flex items-center bg-white dark:bg-gray-800 shadow-2xl rounded-2xl border border-gray-100 dark:border-gray-700 p-1">
+                                <div className="p-3 text-gray-400">
+                                    <Search size={20} />
+                                </div>
+                                <input
+                                    type="text"
+                                    placeholder="Search hidden gems..."
+                                    className="flex-1 bg-transparent border-none outline-none text-sm py-2 dark:text-gray-100 placeholder-gray-400"
+                                    value={searchQuery}
+                                    onFocus={() => setShowSuggestions(true)}
+                                    onChange={(e) => {
+                                        setSearchQuery(e.target.value);
+                                        setShowSuggestions(true);
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && suggestions.length > 0) {
+                                            handlePlaceSelect(suggestions[0]);
+                                        }
+                                    }}
+                                />
+                                {searchQuery && (
+                                    <button onClick={() => { setSearchQuery(''); setActivePlace(null); }} className="p-2 text-gray-400 hover:text-gray-600">
+                                        <X size={16} />
+                                    </button>
+                                )}
+                                <button
+                                    onClick={() => suggestions.length > 0 && handlePlaceSelect(suggestions[0])}
+                                    className="p-2 mr-1 bg-mysore-gold/10 hover:bg-mysore-gold/20 text-mysore-gold rounded-xl transition-colors"
+                                >
+                                    <Navigation size={20} className="fill-current" />
+                                </button>
                             </div>
-                            <input
-                                type="text"
-                                placeholder="Search hidden gems..."
-                                className="flex-1 bg-transparent border-none outline-none text-sm py-2 dark:text-gray-100 placeholder-gray-400"
-                                value={searchQuery}
-                                onFocus={() => setShowSuggestions(true)}
-                                onChange={(e) => {
-                                    setSearchQuery(e.target.value);
-                                    setShowSuggestions(true);
+
+                            {/* Suggestions Dropdown */}
+                            {showSuggestions && suggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-in">
+                                    {suggestions.map(place => (
+                                        <button
+                                            key={place.id}
+                                            onClick={() => handlePlaceSelect(place)}
+                                            className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left border-b border-gray-50 last:border-0"
+                                        >
+                                            <div className="w-8 h-8 rounded-full bg-mysore-gold/10 flex items-center justify-center">
+                                                <MapPin size={16} className="text-mysore-gold" />
+                                            </div>
+                                            <div>
+                                                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.title}</p>
+                                                <p className="text-[10px] text-gray-500">{place.location}</p>
+                                            </div>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        {/* Categories */}
+                        <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                            {categories.map(cat => (
+                                <button
+                                    key={cat}
+                                    onClick={() => setSelectedCategory(cat)}
+                                    className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap border transition-all ${selectedCategory === cat
+                                        ? 'bg-mysore-gold border-mysore-gold text-white shadow-lg shadow-mysore-gold/30'
+                                        : 'bg-white border-white shadow-md text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300'
+                                        }`}
+                                >
+                                    {cat}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* MapComponent Container - Explicit height to fix rendering issues */}
+                <div className="w-full h-full absolute inset-0 z-0" onClick={() => setShowSuggestions(false)}>
+                    <MapContainer
+                        center={center}
+                        zoom={zoom}
+                        scrollWheelZoom={true}
+                        className="w-full h-full z-0 outline-none"
+                        zoomControl={false}
+                        style={{ height: '100%', width: '100%' }}
+                    >
+
+
+                        <ChangeView center={center} zoom={zoom} />
+                        <TileLayer
+                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                            attribution='&copy; OpenStreetMap'
+                        />
+
+                        {filteredPlaces.map(place => (
+                            <Marker
+                                key={place.id}
+                                position={place.coords}
+                                icon={getMarkerIcon(place.category)}
+                                eventHandlers={{
+                                    click: () => handlePlaceSelect(place),
                                 }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && suggestions.length > 0) {
-                                        handlePlaceSelect(suggestions[0]);
-                                    }
-                                }}
-                            />
-                            {searchQuery && (
-                                <button onClick={() => { setSearchQuery(''); setActivePlace(null); }} className="p-2 text-gray-400 hover:text-gray-600">
+                            >
+                                <Popup>
+                                    <div className="p-1 min-w-[150px]">
+                                        <h4 className="font-bold text-sm text-gray-900">{place.title}</h4>
+                                        <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1">
+                                            <Star size={10} className="text-yellow-500 fill-current" />
+                                            <span>{place.rating}</span>
+                                            <span>?€¢</span>
+                                            <span>{place.category}</span>
+                                        </div>
+                                    </div>
+                                </Popup>
+                            </Marker>
+                        ))}
+                    </MapContainer>
+                </div>
+
+                {/* Floating Actions */}
+                {interactive && (
+                    <div className={`absolute bottom-24 right-4 z-[1000] flex flex-col gap-3 transition-transform ${activePlace ? '-translate-y-48' : ''}`}>
+                        <button
+                            onClick={() => { setActivePlace(null); setShowBookingPanel(false); setSearchQuery(''); }}
+                            className="p-3 bg-white dark:bg-gray-800 shadow-xl rounded-full text-gray-600 dark:text-gray-300 hover:scale-110 active:scale-95 transition-all border border-gray-100 dark:border-gray-700"
+                        >
+                            <Navigation size={22} />
+                        </button>
+                    </div>
+                )}
+
+                {/* Bottom Info Card / Cab Facility */}
+                {interactive && activePlace && (
+                    <div className="absolute bottom-6 left-4 right-4 z-[1000] transition-all duration-500">
+                        <div className={`bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700 transition-all duration-500 ${showBookingPanel ? 'h-[420px]' : 'h-max'}`}>
+                            {/* Header Image */}
+                            <div className={`relative transition-all duration-500 ${showBookingPanel ? 'h-20' : 'h-32'}`}>
+                                <img src={activePlace.image} alt="" className="w-full h-full object-cover" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                                <button
+                                    onClick={() => { setActivePlace(null); setShowBookingPanel(false); setSearchQuery(''); }}
+                                    className="absolute top-3 right-3 p-1.5 bg-black/40 text-white rounded-full backdrop-blur-md hover:bg-black/60 transition-colors"
+                                >
                                     <X size={16} />
                                 </button>
-                            )}
-                            <button
-                                onClick={() => suggestions.length > 0 && handlePlaceSelect(suggestions[0])}
-                                className="p-2 mr-1 bg-mysore-gold/10 hover:bg-mysore-gold/20 text-mysore-gold rounded-xl transition-colors"
-                            >
-                                <Navigation size={20} className="fill-current" />
-                            </button>
-                        </div>
-
-                        {/* Suggestions Dropdown */}
-                        {showSuggestions && suggestions.length > 0 && (
-                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-in">
-                                {suggestions.map(place => (
-                                    <button
-                                        key={place.id}
-                                        onClick={() => handlePlaceSelect(place)}
-                                        className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left border-b border-gray-50 last:border-0"
-                                    >
-                                        <div className="w-8 h-8 rounded-full bg-mysore-gold/10 flex items-center justify-center">
-                                            <MapPin size={16} className="text-mysore-gold" />
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.title}</p>
-                                            <p className="text-[10px] text-gray-500">{place.location}</p>
-                                        </div>
-                                    </button>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Categories */}
-                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                onClick={() => setSelectedCategory(cat)}
-                                className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap border transition-all ${selectedCategory === cat
-                                    ? 'bg-mysore-gold border-mysore-gold text-white shadow-lg shadow-mysore-gold/30'
-                                    : 'bg-white border-white shadow-md text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300'
-                                    }`}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* MapComponent Container - Explicit height to fix rendering issues */}
-            <div className="w-full h-full absolute inset-0 z-0" onClick={() => setShowSuggestions(false)}>
-                <MapContainer
-                    center={center}
-                    zoom={zoom}
-                    scrollWheelZoom={true}
-                    className="w-full h-full z-0 outline-none"
-                    zoomControl={false}
-                    style={{ height: '100%', width: '100%' }}
-                >
-
-
-                    <ChangeView center={center} zoom={zoom} />
-                    <TileLayer
-                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        attribution='&copy; OpenStreetMap'
-                    />
-
-                    {filteredPlaces.map(place => (
-                        <Marker
-                            key={place.id}
-                            position={place.coords}
-                            eventHandlers={{
-                                click: () => handlePlaceSelect(place),
-                            }}
-                        >
-                            <Popup>
-                                <div className="p-1 min-w-[150px]">
-                                    <h4 className="font-bold text-sm text-gray-900">{place.title}</h4>
-                                    <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1">
-                                        <Star size={10} className="text-yellow-500 fill-current" />
-                                        <span>{place.rating}</span>
-                                        <span>?€¢</span>
-                                        <span>{place.category}</span>
-                                    </div>
+                                <div className="absolute bottom-3 left-4 text-white">
+                                    <h3 className="font-bold leading-tight">{activePlace.title}</h3>
+                                    <p className="text-[10px] opacity-80">{activePlace.location}</p>
                                 </div>
-                            </Popup>
-                        </Marker>
-                    ))}
-                </MapContainer>
-            </div>
-
-            {/* Floating Actions */}
-            {interactive && (
-                <div className={`absolute bottom-24 right-4 z-[1000] flex flex-col gap-3 transition-transform ${activePlace ? '-translate-y-48' : ''}`}>
-                    <button
-                        onClick={() => { setActivePlace(null); setShowBookingPanel(false); setSearchQuery(''); }}
-                        className="p-3 bg-white dark:bg-gray-800 shadow-xl rounded-full text-gray-600 dark:text-gray-300 hover:scale-110 active:scale-95 transition-all border border-gray-100 dark:border-gray-700"
-                    >
-                        <Navigation size={22} />
-                    </button>
-                </div>
-            )}
-
-            {/* Bottom Info Card / Cab Facility */}
-            {interactive && activePlace && (
-                <div className="absolute bottom-6 left-4 right-4 z-[1000] transition-all duration-500">
-                    <div className={`bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700 transition-all duration-500 ${showBookingPanel ? 'h-[420px]' : 'h-max'}`}>
-                        {/* Header Image */}
-                        <div className={`relative transition-all duration-500 ${showBookingPanel ? 'h-20' : 'h-32'}`}>
-                            <img src={activePlace.image} alt="" className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
-                            <button
-                                onClick={() => { setActivePlace(null); setShowBookingPanel(false); setSearchQuery(''); }}
-                                className="absolute top-3 right-3 p-1.5 bg-black/40 text-white rounded-full backdrop-blur-md hover:bg-black/60 transition-colors"
-                            >
-                                <X size={16} />
-                            </button>
-                            <div className="absolute bottom-3 left-4 text-white">
-                                <h3 className="font-bold leading-tight">{activePlace.title}</h3>
-                                <p className="text-[10px] opacity-80">{activePlace.location}</p>
                             </div>
-                        </div>
 
-                        <div className="p-5 h-full overflow-y-auto no-scrollbar">
-                            {!showBookingPanel ? (
-                                <div className="flex items-center justify-between animate-in">
-                                    <div className="flex gap-6">
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Rating</span>
-                                            <div className="flex items-center gap-1 mt-1">
-                                                <Star size={14} className="text-yellow-500 fill-current" />
-                                                <span className="font-bold text-base">{activePlace.rating}</span>
+                            <div className="p-5 h-full overflow-y-auto no-scrollbar">
+                                {!showBookingPanel ? (
+                                    <div className="flex items-center justify-between animate-in">
+                                        <div className="flex gap-6">
+                                            <div className="flex flex-col">
+                                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Rating</span>
+                                                <div className="flex items-center gap-1 mt-1">
+                                                    <Star size={14} className="text-yellow-500 fill-current" />
+                                                    <span className="font-bold text-base">{activePlace.rating}</span>
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-col border-l border-gray-100 dark:border-gray-800 pl-6">
+                                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Estimate</span>
+                                                <div className="flex items-center gap-1 mt-1">
+                                                    <Car size={14} className="text-mysore-gold" />
+                                                    <span className="font-bold text-base">?‚¹142</span>
+                                                </div>
                                             </div>
                                         </div>
-                                        <div className="flex flex-col border-l border-gray-100 dark:border-gray-800 pl-6">
-                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Estimate</span>
-                                            <div className="flex items-center gap-1 mt-1">
-                                                <Car size={14} className="text-mysore-gold" />
-                                                <span className="font-bold text-base">?‚¹142</span>
-                                            </div>
-                                        </div>
+                                        <button
+                                            onClick={() => setShowBookingPanel(true)}
+                                            className="bg-mysore-gold text-white px-8 py-3.5 rounded-2xl font-bold text-sm flex items-center gap-2 shadow-xl shadow-mysore-gold/30 hover:scale-[1.05] active:scale-[0.95] transition-all"
+                                        >
+                                            <Car size={18} />
+                                            Book Ride
+                                        </button>
                                     </div>
-                                    <button
-                                        onClick={() => setShowBookingPanel(true)}
-                                        className="bg-mysore-gold text-white px-8 py-3.5 rounded-2xl font-bold text-sm flex items-center gap-2 shadow-xl shadow-mysore-gold/30 hover:scale-[1.05] active:scale-[0.95] transition-all"
-                                    >
-                                        <Car size={18} />
-                                        Book Ride
-                                    </button>
-                                </div>
-                            ) : (
-                                <div className="space-y-4 animate-in">
-                                    {bookingStage === 'select' && (
-                                        <>
-                                            <div className="flex items-center justify-between">
-                                                <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">Choose your vehicle</h4>
-                                                <button onClick={() => setShowBookingPanel(false)} className="text-[10px] font-bold text-gray-400 uppercase">Cancel</button>
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-2">
-                                                {cabOptions.map(cab => (
-                                                    <div
-                                                        key={cab.id}
-                                                        onClick={() => handleBookNow(cab)}
-                                                        className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-mysore-gold/30 rounded-2xl transition-all cursor-pointer group"
-                                                    >
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">{cab.icon}</div>
-                                                            <div>
-                                                                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{cab.type}</p>
-                                                                <p className="text-[10px] text-gray-500">{cab.description}</p>
+                                ) : (
+                                    <div className="space-y-4 animate-in">
+                                        {bookingStage === 'select' && (
+                                            <>
+                                                <div className="flex items-center justify-between">
+                                                    <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">Choose your vehicle</h4>
+                                                    <button onClick={() => setShowBookingPanel(false)} className="text-[10px] font-bold text-gray-400 uppercase">Cancel</button>
+                                                </div>
+                                                <div className="grid grid-cols-1 gap-2">
+                                                    {cabOptions.map(cab => (
+                                                        <div
+                                                            key={cab.id}
+                                                            onClick={() => handleBookNow(cab)}
+                                                            className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-mysore-gold/30 rounded-2xl transition-all cursor-pointer group"
+                                                        >
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">{cab.icon}</div>
+                                                                <div>
+                                                                    <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{cab.type}</p>
+                                                                    <p className="text-[10px] text-gray-500">{cab.description}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <p className="font-bold text-gray-900 dark:text-gray-100">{cab.price}</p>
+                                                                <p className="text-[10px] text-green-500 font-bold">{cab.time}</p>
                                                             </div>
                                                         </div>
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {bookingStage === 'confirm' && selectedCab && (
+                                            <div className="space-y-6 py-2">
+                                                <div className="text-center space-y-2">
+                                                    <div className="w-20 h-20 bg-mysore-gold/10 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 animate-pulse">
+                                                        {selectedCab.icon}
+                                                    </div>
+                                                    <h4 className="text-lg font-bold">Confirm your {selectedCab.type}</h4>
+                                                    <p className="text-sm text-gray-500">Pick-up: Current Location<br />Drop-off: {activePlace.title}</p>
+                                                </div>
+                                                <div className="flex gap-3">
+                                                    <button
+                                                        onClick={() => setBookingStage('select')}
+                                                        className="flex-1 py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                                                    >
+                                                        Back
+                                                    </button>
+                                                    <button
+                                                        onClick={confirmBooking}
+                                                        className="flex-[2] py-4 bg-black text-white rounded-2xl font-bold shadow-2xl hover:bg-gray-800 transition-colors"
+                                                    >
+                                                        Confirm & Pay {selectedCab.price}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {bookingStage === 'success' && (
+                                            <div className="flex flex-col items-center justify-center py-10 space-y-4 fade-in">
+                                                <div className="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-green-200">
+                                                    <Clock size={32} />
+                                                </div>
+                                                <div className="text-center">
+                                                    <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100">Booking Confirmed!</h4>
+                                                    <p className="text-sm text-gray-500 mt-1">Your driver is arriving in {selectedCab?.time}</p>
+                                                </div>
+                                                <div className="w-full bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600">
+                                                    <div className="flex justify-between items-center">
+                                                        <div>
+                                                            <p className="text-[10px] font-bold text-gray-400 uppercase">Driver Info</p>
+                                                            <p className="text-sm font-bold">Suresh Kumar</p>
+                                                        </div>
                                                         <div className="text-right">
-                                                            <p className="font-bold text-gray-900 dark:text-gray-100">{cab.price}</p>
-                                                            <p className="text-[10px] text-green-500 font-bold">{cab.time}</p>
+                                                            <p className="text-[10px] font-bold text-gray-400 uppercase">OTP</p>
+                                                            <p className="text-sm font-bold tracking-widest text-mysore-gold">4821</p>
                                                         </div>
                                                     </div>
-                                                ))}
-                                            </div>
-                                        </>
-                                    )}
-
-                                    {bookingStage === 'confirm' && selectedCab && (
-                                        <div className="space-y-6 py-2">
-                                            <div className="text-center space-y-2">
-                                                <div className="w-20 h-20 bg-mysore-gold/10 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 animate-pulse">
-                                                    {selectedCab.icon}
-                                                </div>
-                                                <h4 className="text-lg font-bold">Confirm your {selectedCab.type}</h4>
-                                                <p className="text-sm text-gray-500">Pick-up: Current Location<br />Drop-off: {activePlace.title}</p>
-                                            </div>
-                                            <div className="flex gap-3">
-                                                <button
-                                                    onClick={() => setBookingStage('select')}
-                                                    className="flex-1 py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors"
-                                                >
-                                                    Back
-                                                </button>
-                                                <button
-                                                    onClick={confirmBooking}
-                                                    className="flex-[2] py-4 bg-black text-white rounded-2xl font-bold shadow-2xl hover:bg-gray-800 transition-colors"
-                                                >
-                                                    Confirm & Pay {selectedCab.price}
-                                                </button>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {bookingStage === 'success' && (
-                                        <div className="flex flex-col items-center justify-center py-10 space-y-4 fade-in">
-                                            <div className="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-green-200">
-                                                <Clock size={32} />
-                                            </div>
-                                            <div className="text-center">
-                                                <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100">Booking Confirmed!</h4>
-                                                <p className="text-sm text-gray-500 mt-1">Your driver is arriving in {selectedCab?.time}</p>
-                                            </div>
-                                            <div className="w-full bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600">
-                                                <div className="flex justify-between items-center">
-                                                    <div>
-                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">Driver Info</p>
-                                                        <p className="text-sm font-bold">Suresh Kumar</p>
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">OTP</p>
-                                                        <p className="text-sm font-bold tracking-widest text-mysore-gold">4821</p>
-                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
+                                        )}
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </div>
     );
 };
@@ -1204,8 +1238,8 @@ export const Navbar = ({ onProfileClick, activeTab, setActiveTab }) => {
     return (
         <nav className="flex justify-between items-center px-4 md:px-8 h-16 md:h-[72px] transition-colors duration-200">
             <div className="flex flex-col cursor-pointer shrink-0" onClick={() => setActiveTab && setActiveTab('home')}>
-                <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 tracking-[0.2em] uppercase hidden md:block">Heritage Portal</span>
-                <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-1">
+                <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-2">
+                    <img src="/src/assets/logo-circle.png" alt="Logo" className="w-8 h-8 md:w-9 md:h-9 object-contain" />
                     Mysuru <span className="text-mysore-600">Marga</span>
                 </h1>
             </div>
@@ -1238,7 +1272,7 @@ export const PlaceCard = ({ image, category, title, description, location, ratin
     return (
         <div
             onClick={onClick}
-            className="group bg-white/10 dark:bg-black/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(212,175,55,0.15)] transition-all duration-300 cursor-pointer relative"
+            className="group bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-xl border border-white/20 dark:border-amber-900/30 rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(212,175,55,0.15)] transition-all duration-300 cursor-pointer relative"
         >
             {/* Image Container */}
             <div className="relative aspect-[4/3] w-full overflow-hidden">
@@ -1416,28 +1450,28 @@ export const PlaceDetails = ({ place, onBack, isSaved, onToggleSave, userEmail, 
                 <div className="px-8 md:px-12 pt-16 pb-20 space-y-16">
                     {/* Quick Info Grid */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-white/80 dark:bg-gray-800/60 p-7 rounded-[2.5rem] border border-[#D4AF37]/20 dark:border-gray-700 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                        <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <Clock className="w-6 h-6 text-amber-500" />
                             </div>
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Visiting Hours</h4>
                             <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.visitingTime || '10:00 AM - 5:30 PM'}</p>
                         </div>
-                        <div className="bg-white/80 dark:bg-gray-800/60 p-7 rounded-[2.5rem] border border-[#D4AF37]/20 dark:border-gray-700 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                        <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <IndianRupee className="w-6 h-6 text-emerald-500" />
                             </div>
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Ticket Price</h4>
                             <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.ticketFee || 'Free/Minimal'}</p>
                         </div>
-                        <div className="bg-white/80 dark:bg-gray-800/60 p-7 rounded-[2.5rem] border border-[#D4AF37]/20 dark:border-gray-700 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                        <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <Calendar className="w-6 h-6 text-blue-500" />
                             </div>
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Best To Visit</h4>
                             <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.bestTimeToVisit || 'September to March'}</p>
                         </div>
-                        <div className="bg-white/80 dark:bg-gray-800/60 p-7 rounded-[2.5rem] border border-[#D4AF37]/20 dark:border-gray-700 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                        <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <Sparkles className="w-6 h-6 text-purple-500" />
                             </div>
@@ -3021,20 +3055,20 @@ export const TravaAI = ({ onBack }) => {
         tripName: '',
         startingFrom: '',
         destinations: '',
-        travelers: '1',
-        theme: 'Heritage',
-        persona: 'Family',
+        travelers: '',
+        theme: '',
+        persona: '',
         interests: [],
         startDate: '',
         endDate: '',
-        pace: 'Balanced',
+        pace: '',
         arrivalTime: '',
         departureTime: '',
-        budget: 'Moderate',
-        accommodation: 'Comfort',
-        diet: 'ALL',
-        transport: 'Personal',
-        vehicleType: 'Car',
+        budget: '',
+        accommodation: '',
+        diet: '',
+        transport: '',
+        vehicleType: '',
         specialRequests: ''
     });
 
@@ -3053,6 +3087,130 @@ export const TravaAI = ({ onBack }) => {
         }));
     };
 
+    const TRAVA_OFFLINE_KNOWLEDGE = {
+        app: {
+            name: "Mysuru Marga",
+            tagline: "The Soulful Heritage Explorer",
+            achievements: "Won 2nd Place in the 24-hour State Level Hackathon 'Parivarthan' at Vidyavardhaka College of Engineering.",
+            team: "TECH NEXUS",
+            tech: "React, Vite, Tailwind CSS, and Supabase.",
+            vision: "To become a location-agnostic heritage platform for global historical destinations."
+        },
+        dynasty: {
+            king: "Nalwadi Krishnaraja Wadiyar IV (1884–1940) is the 'Architect of Modern Mysore.' He founded the University of Mysore, IISc (Bangalore), and built the KRS Dam.",
+            curse: "The Curse of Talakadu: Alamelamma cursed the Wadiyars to never have natural heirs after they seized Srirangapatna. For 400 years, the throne often passed to adopted sons.",
+            industrial: "Mysuru was the first Indian city with streetlights (1905). It hosts royal initiatives like Sanderson & Sons (Sandalwood) and KSIC (Silk)."
+        },
+        museums: {
+            rail: "Mysuru Rail Museum: Features the 'Maharani Saloon' coach from 1899 and vintage steam engines. Loc: KRS Road.",
+            wax: "Melody World Wax Museum: 100+ life-size wax statues of musicians in a heritage building. Loc: Siddhartha Layout.",
+            sand: "Mysore Sand Sculpture Museum: 150+ intricate sculptures made of sand and water, unique in India. Loc: Chamundi Hill Road.",
+            folklore: "Folklore Museum (Jayalakshmi Vilas Mansion): One of Asia's best for traditional crafts, puppets, and costumes."
+        },
+        nature: {
+            karanji: "Karanji Lake: 90-hectare paradise with India's largest walk-through aviary and a butterfly park.",
+            kukkarahalli: "Kukkarahalli Lake: 'Lung of the city' with a 4.5km walk, home to 180+ bird species.",
+            shuka_vana: "Shuka Vana: World-record bird park (inside Peetham) with 2,100+ parrots.",
+            bonsai: "Bonsai Garden (Kishkindha Moolika): 450+ miniature trees curated by Indian zodiac signs.",
+            lingambudhi: "Lingambudhi Lake: A tranquil perennial lake known for its biodiversity and walking paths in Ramakrishna Nagar."
+        },
+        day_trips: {
+            srirangapatna: "Srirangapatna (15km): Capital under Tipu Sultan. See Summer Palace (Daria Daulat Bagh) and Bailey’s Dungeon.",
+            somanathapura: "Somanathapura (35km): Chennakesava Temple, a UNESCO site with pinnacle Hoysala stone carvings.",
+            talakadu: "Talakadu (45km): Mystic town on the Kaveri where temples are buried under sand dunes.",
+            wildlife: "Bandipur National Park (80km): Tiger reserve with safaris at 6:30AM and 3:30PM.",
+            waterfalls: "Shivanasamudra (75km): Gaganachukki and Barachukki falls (best Aug–Nov).",
+            balmuri: "Balmuri Falls (15km): Man-made check dam on Cauvery, famous for film songs. Loc: KRS Road.",
+            edmuri: "Edmuri Falls: Quiter sibling to Balmuri, perfect for refreshing dips near KRS Road.",
+            karighatta: "Karighatta Hill (20km): Scenic hill with Srinivasa temple and views of river confluence."
+        },
+        adventure: {
+            chamundi_trek: "Chamundi Hill Steps: 1,008 steps climb for breathtaking views and spiritual fulfillment.",
+            varuna: "Varuna Lake: Prime spot for jet skiing, kayaking, and banana boat rides.",
+            grs: "GRS Fantasy Park: Premier water & amusement park with slide and virtual 5D rides on KRS Road.",
+            kunti_betta: "Kunti Betta (28km): Legendary hill near Pandavapura famous for night treks and sunrise views."
+        },
+        stays: {
+            lalitha_mahal: "Lalitha Mahal Palace: Royal white palace hotel built by the Maharaja for guests in Siddhartha Nagar.",
+            metropole: "Royal Orchid Metropole: Heritage hotel with vintage charm and luxury on JLB Road."
+        },
+        walk: "Heritage Walk (2 hours): Start at Town Hall -> Devaraja Market -> Dufferin Clock Tower -> North Gate of Palace for illumination.",
+        dasara: [
+            "Gajapayana: Elephants march from forest to city.",
+            "Palace Illumination: 97,000 bulbs glow from 7 PM to 10 PM.",
+            "Jamboo Savari: Grand finale with lead elephant Abhimanyu carrying the 750kg Golden Howdah.",
+            "KR Circle: Illuminated night views of the heart of Mysuru and Statue Square."
+        ],
+        pricing: {
+            palace: "Entry: ₹100. Open: 10:00 AM – 5:30 PM. Illumination: 7-10PM Sundays/Public Holidays.",
+            zoo: "Entry: ₹100 (Weekdays), ₹120 (Weekends). Open: 8:30 AM – 5:30 PM (Closed Tue).",
+            gardens: "Entry: ₹50. Open: 6:30 AM – 8:00 PM. Musical Fountain starts ~6:30 PM.",
+            jaganmohan: "Entry: ₹75. Largest Raja Ravi Varma collection in South India. Open: 10:00 AM – 5:30 PM.",
+            wax_museum: "Entry: ₹50. Open: 10AM - 7PM.",
+            sand_museum: "Entry: ₹40. Open: 8:30AM - 6:30PM."
+        },
+        flavor: {
+            market: "Devaraja Market: 100+ year-old bazaar famous for flowers, essential oils, and colorful 'Kumkum'.",
+            silk: "Mysore Silk: Witness pure silk weaving with 24K gold zari at the KSIC factory.",
+            pak: "Mysore Pak: Try Guru Sweet Mart for the original melt-in-your-mouth recipe.",
+            eats: "Mylari Dosa (Nazarbad) for cloud-soft dosas and Hotel Hanumanthu for heritage Pulav.",
+            sandalwood: "Sandalwood Carving: Watch master artisans in Mandi Mohalla carve 'Liquid Gold' sandalwood."
+        }
+    };
+
+    const getOfflineResponse = (query) => {
+        const q = query.toLowerCase();
+
+        // App/Team/Hackathon info
+        if (q.includes('who created') || q.includes('team') || q.includes('nexus'))
+            return `Mysuru Marga was crafted by team ${TRAVA_OFFLINE_KNOWLEDGE.app.team}, winners of the Parivarthan Hackathon!`;
+        if (q.includes('hackathon') || q.includes('achievement'))
+            return `Success! ${TRAVA_OFFLINE_KNOWLEDGE.app.achievements}`;
+        if (q.includes('tech') || q.includes('stack') || q.includes('built with'))
+            return `Powered by: ${TRAVA_OFFLINE_KNOWLEDGE.app.tech}`;
+
+        // History & Dynasty
+        if (q.includes('dynasty') || q.includes('wadiyar') || q.includes('king') || q.includes('krishnaraja'))
+            return `${TRAVA_OFFLINE_KNOWLEDGE.dynasty.king} Also, ${TRAVA_OFFLINE_KNOWLEDGE.dynasty.curse}`;
+        if (q.includes('history'))
+            return `${TRAVA_OFFLINE_KNOWLEDGE.dynasty.king} | Fact: ${TRAVA_OFFLINE_KNOWLEDGE.dynasty.industrial}`;
+
+        // Landmarks & Prices
+        if (q.includes('palace')) return "Mysore Palace: " + TRAVA_OFFLINE_KNOWLEDGE.pricing.palace;
+        if (q.includes('zoo')) return "Mysore Zoo: " + TRAVA_OFFLINE_KNOWLEDGE.pricing.zoo;
+        if (q.includes('garden') || q.includes('brindavan')) return "Brindavan Gardens: " + TRAVA_OFFLINE_KNOWLEDGE.pricing.gardens;
+        if (q.includes('jaganmohan')) return "Jaganmohan Palace: " + TRAVA_OFFLINE_KNOWLEDGE.pricing.jaganmohan;
+        if (q.includes('church') || q.includes('philomena')) return "St. Philomena’s: 2nd largest in Asia. Entry: Free. Open 5AM-6PM.";
+        if (q.includes('hill')) return "Chamundi Hills: Best city view, temple, and the massive Nandi bull.";
+
+        // Nature & Quiet
+        if (q.includes('nature') || q.includes('quiet') || q.includes('green') || q.includes('lake') || q.includes('bird') || q.includes('shuka vana') || q.includes('bonsai')) {
+            return `Nature Circuit: ${TRAVA_OFFLINE_KNOWLEDGE.nature.karanji} | ${TRAVA_OFFLINE_KNOWLEDGE.nature.kukkarahalli} | ${TRAVA_OFFLINE_KNOWLEDGE.nature.shuka_vana} | ${TRAVA_OFFLINE_KNOWLEDGE.nature.bonsai}`;
+        }
+
+        // Hidden Gems / Offbeat
+        if (q.includes('hidden') || q.includes('gem') || q.includes('offbeat') || q.includes('quirky') || q.includes('wax') || q.includes('sand')) {
+            return `Offbeat Hits: ${TRAVA_OFFLINE_KNOWLEDGE.museums.wax} | ${TRAVA_OFFLINE_KNOWLEDGE.museums.sand} | Venugopala Swamy Temple on backwaters (Hosa Kannambadi) is stunning at sunset!`;
+        }
+
+        // Day Trips
+        if (q.includes('day trip') || q.includes('around') || q.includes('near') || q.includes('100km') || q.includes('somanathapura') || q.includes('bandipur') || q.includes('waterfall')) {
+            return `Day Trips: ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.srirangapatna} | ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.somanathapura} | ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.wildlife} | ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.waterfalls}`;
+        }
+
+        // Walk
+        if (q.includes('walk') || q.includes('route') || q.includes('itinerary')) return "Heritage Walk: " + TRAVA_OFFLINE_KNOWLEDGE.walk;
+
+        // Food & Shopping
+        if (q.includes('food') || q.includes('eat') || q.includes('dosa') || q.includes('pak') || q.includes('shopping') || q.includes('market') || q.includes('silk') || q.includes('sandalwood')) {
+            return `${TRAVA_OFFLINE_KNOWLEDGE.flavor.market} | Sweets: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.pak} | Eats: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.eats} | Shopping: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.silk}`;
+        }
+
+        if (q.includes('hello') || q.includes('namaskara')) return "Namaskara! I am Trava AI. Ask me about Royal History, Nature spots, Entry Fees, or hidden gems of Mysuru!";
+
+        return "I'm in offline mode. Ask about King Krishnaraja, Brindavan Garden fees, Tiger Safaris, or the Heritage Walk!";
+    };
+
     const handleTravaMessage = async (msgOverride) => {
         const msg = typeof msgOverride === 'string' ? msgOverride : input;
         if (!msg.trim() || isTravaLoading) return;
@@ -3064,14 +3222,23 @@ export const TravaAI = ({ onBack }) => {
         setIsTravaLoading(true);
 
         try {
+            // Check for local response first to avoid API calls if possible (or if requested)
+            const offlineResp = getOfflineResponse(userMessage);
+            if (!offlineResp.startsWith("I'm currently in heritage-preservation")) {
+                _setMessages(prev => [...prev, { role: 'assistant', content: offlineResp }]);
+                setIsTravaLoading(false);
+                return;
+            }
+
             const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
             const prompt = `You are Trava AI, an intelligent personal travel companion for Mysuru (Mysore). Be very helpful, knowledgeable, and suggest highly practical travel tips, itineraries, and facts based on the city's rich heritage. Format your output clearly. User query: ${userMessage}`;
             const result = await model.generateContent(prompt);
             const responseText = result.response.text();
             _setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
         } catch (error) {
-            console.error("Trava AI chat error:", error);
-            _setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I am having trouble fetching the information right now." }]);
+            console.error("Trava AI chat error (falling back to offline logic):", error);
+            const fallback = getOfflineResponse(userMessage);
+            _setMessages(prev => [...prev, { role: 'assistant', content: fallback }]);
         } finally {
             setIsTravaLoading(false);
         }
@@ -3080,41 +3247,120 @@ export const TravaAI = ({ onBack }) => {
     const generatePlanner = async () => {
         setIsTravaLoading(true);
         try {
-            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-            const prompt = `Generate a detailed Mysuru travel itinerary based on these user preferences:
-            Theme/Identity: ${formData.tripName || 'My Mysuru Trip'}
-            Starting City: ${formData.startingFrom || 'Anywhere'}
-            Specific Places Interested: ${formData.destinations || 'Any'}
-            Travelers Count: ${formData.travelers}
-            Core Theme: ${formData.theme}
-            Persona: ${formData.persona}
-            Interests: ${formData.interests.join(', ') || 'General Sightseeing'}
-            Dates: from ${formData.startDate || 'flexible'} to ${formData.endDate || 'flexible'}
-            Pace: ${formData.pace}
-            Timings: Arrival at ${formData.arrivalTime || 'flexible'}, Departure at ${formData.departureTime || 'flexible'}
-            Budget: ${formData.budget}
-            Accommodation Type: ${formData.accommodation}
-            Dietary Preference: ${formData.diet}
-            Transport: ${formData.transport} (${formData.vehicleType})
-            Special Requests: ${formData.specialRequests || 'None'}
+            // Local Itinerary Generation Logic
+            const days = formData.startDate && formData.endDate ?
+                Math.ceil((new Date(formData.endDate) - new Date(formData.startDate)) / (1000 * 60 * 60 * 24)) + 1 : 2;
 
-            Please provide a highly structured, day-by-day (or logical if dates are flexible) itinerary that is directly aligned with these choices. Make it immersive, accurate, practical, and highly detailed. Incorporate local Mysuru culture. Give it a royal, welcoming introductory tone.`;
+            const localItinerary = `## 🏰 Your Royal Itinerary: ${formData.tripName || 'Mysuru Exploration'}
+Greetings! As your local companion, I've curated a ${days}-day plan for your party of ${formData.travelers || 'explorers'}.
 
-            const result = await model.generateContent(prompt);
-            const responseText = result.response.text();
-            _setMessages(prev => [...prev, { role: 'assistant', content: `Here is your customized Heritage ID and Itinerary:\n\n${responseText}` }]);
+### 📍 Day 1: The Heart of Royalty & Flavor
+*   **Morning**: Arrival in Mysuru. Head to the **Mysore Palace** for a royal tour. Learn about **Nalwadi Krishnaraja Wadiyar IV**, the architect of modern Mysore.
+*   **Afternoon**: Lunch at **Mylari Dosa** (Nazarbad). Visit the **Mysuru Rail Museum** to see the 'Maharani Saloon'.
+*   **Evening**: Sunset at **Chamundi Hills**. Explore **Devaraja Market** for authentic oils, flowers, and colorful Kumkum.
+
+### 📍 Day 2: Srirangapatna & Island Heritage
+*   **Morning**: Drive to **Srirangapatna** (15km). Explore **Daria Daulat Bagh** (Tipu's teakwood palace) and **Colonel Bailey’s Dungeon**.
+*   **Afternoon**: Visit the **Sangama** (river confluence) and return to witness **Rosewood Inlay** artisans at Mandi Mohalla.
+*   **Evening**: Conclude with the musical fountain show at **Brindavan Gardens**, a royal legacy by the Kaveri.
+
+### 📍 Day 3: Architecture & Nature
+*   **Morning**: Drive to **Somanathapura** (35km) for the pinnacle of Hoysala architecture (Chennakesava Temple).
+*   **Afternoon**: Return and visit **Shuka Vana** (world record bird park) and the **Bonsai Garden**.
+*   **Evening**: A peaceful walk at **Kukkarahalli Lake** or witness a rehearsal for the **Dasara Jamboo Savari**.
+
+### 📍 Day 4 (Bonus): Wildlife & Hidden Gems
+*   **Morning**: Visit **Mysuru Zoo** and stroll through the **Karanji Lake** aviary.
+*   **Afternoon**: Visit the **Venugopala Swamy Temple** (Hosa Kannambadi) for a stunning backwater view.
+*   **Evening**: Shop for **Mysore Silk** sarees at the KSIC factory and grab original **Mysore Pak** from Guru Sweet Mart.
+
+*Theme matched: ${formData.theme || 'Heritage & Culture'}*
+*Pace: ${formData.pace || 'Balanced'}*
+
+**Safe travels through the Heritage City!**`;
+
+            _setMessages(prev => [...prev, { role: 'assistant', content: `Here is your customized Heritage ID and Itinerary (Generated Locally):\n\n${localItinerary}` }]);
             setMode('chat');
+
+            /* Remote API skipped for premium speed and offline reliability */
+            // const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            // ... API logic ...
         } catch (error) {
             console.error("Trava AI planner error:", error);
-            _setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I couldn't generate the itinerary at this time. Please try again or check your connection." }]);
+            _setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I couldn't generate the itinerary at this time." }]);
             setMode('chat');
         } finally {
             setIsTravaLoading(false);
         }
     };
 
+    const renderInvite = () => (
+        <div className="px-6 md:px-12 pt-12 pb-40 flex flex-col items-center animate-in slide-in-from-bottom-4 duration-700">
+            <div className="w-full max-w-2xl bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-3xl p-8 md:p-12 rounded-[3rem] border border-white/20 dark:border-amber-900/30 shadow-2xl space-y-8 text-center">
+                <div className="mx-auto w-20 h-20 bg-gradient-to-br from-[#D4AF37] to-[#B8962F] rounded-3xl flex items-center justify-center shadow-2xl transform -rotate-6">
+                    <Users className="text-black w-10 h-10" />
+                </div>
+
+                <div className="space-y-3">
+                    <h3 className="text-3xl font-serif text-gray-900 dark:text-white">Invite Fellow Travelers</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 font-medium max-w-md mx-auto">
+                        Plan your Mysuru adventure together. Share your trip ID and synchronize your schedules with friends.
+                    </p>
+                </div>
+
+                <div className="space-y-6 pt-4">
+                    <div className="space-y-3 text-left">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37] ml-2">Your Name (Signature)</label>
+                        <div className="relative group">
+                            <User className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
+                            <input
+                                value={inviteName}
+                                onChange={e => setInviteName(e.target.value)}
+                                placeholder="E.g., Bharath"
+                                className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-medium focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all shadow-sm"
+                            />
+                        </div>
+                    </div>
+
+                    <button
+                        onClick={handleInvite}
+                        className="w-full py-6 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-xl hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 group"
+                    >
+                        {inviteCopied ? (
+                            <>
+                                <Check size={18} />
+                                Link Copied!
+                            </>
+                        ) : (
+                            <>
+                                <Share2 size={18} className="group-hover:translate-x-1 transition-transform" />
+                                Share Trip Invite
+                            </>
+                        )}
+                    </button>
+
+                    <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                        <Shield className="w-3 h-3" /> Secure Trip Sharing Layer Active
+                    </p>
+                </div>
+            </div>
+        </div>
+    );
+
     const renderChat = () => (
         <div className="flex flex-col h-full animate-in fade-in duration-700">
+            {/* API Key Notice */}
+            <div className="px-8 md:px-12 pt-6 -mb-4">
+                <div className="bg-amber-500/10 dark:bg-amber-500/5 border border-amber-500/20 rounded-2xl p-4 flex items-center gap-4 backdrop-blur-sm shadow-sm ring-1 ring-amber-500/10">
+                    <div className="w-8 h-8 rounded-xl bg-amber-500/20 flex items-center justify-center shrink-0">
+                        <Info size={16} className="text-amber-600" />
+                    </div>
+                    <p className="text-[10px] md:text-[11px] font-black uppercase tracking-wider text-amber-900/80 dark:text-amber-400/80 leading-relaxed">
+                        <span className="text-amber-600 dark:text-amber-500">Note:</span> You need to add your API key to make original conversation, but you can use it with pre-built questions and answers about Mysuru.
+                    </p>
+                </div>
+            </div>
+
             <div className="flex-1 overflow-y-auto px-8 md:px-12 py-8 space-y-6 custom-scrollbar pb-32">
                 {messages.map((m, i) => (
                     <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-500`}>
@@ -3278,7 +3524,7 @@ export const TravaAI = ({ onBack }) => {
             </div>
 
             {/* Add Expense */}
-            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-6 md:p-8 rounded-[2.5rem] border border-white dark:border-gray-800 shadow-xl">
+            <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-xl p-6 md:p-8 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/20 rounded-2xl">
@@ -3424,7 +3670,7 @@ export const TravaAI = ({ onBack }) => {
     const renderPlanner = () => (
         <div className="px-8 md:px-12 pt-10 pb-40 space-y-12 animate-in slide-in-from-bottom-4 duration-1000">
             {/* Trip Essentials Card */}
-            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white dark:border-gray-800 shadow-xl space-y-8">
+            <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white/20 dark:border-amber-900/30 shadow-xl space-y-8">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-amber-100 dark:bg-[#D4AF37]/10 rounded-2xl shadow-inner">
                         <Compass className="w-6 h-6 text-[#D4AF37]" />
@@ -3474,6 +3720,7 @@ export const TravaAI = ({ onBack }) => {
                     <div className="relative group">
                         <Sparkles className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
                         <select value={formData.theme} onChange={e => setFormData({ ...formData, theme: e.target.value })} className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-bold appearance-none focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all cursor-pointer shadow-sm">
+                            <option value="" disabled hidden>Select Theme</option>
                             <option>Heritage</option>
                             <option>Nature</option>
                             <option>Adventure</option>
@@ -3696,13 +3943,16 @@ export const TravaAI = ({ onBack }) => {
             {/* Immersive Cinematic Header */}
             <div
                 style={{
-                    transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)',
+                    maxHeight: headerHidden ? '0px' : '200px',
+                    transform: headerHidden ? 'translateY(-20%)' : 'translateY(0)',
                     opacity: headerHidden ? 0 : 1,
-                    transition: 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease',
-                    willChange: 'transform, opacity',
+                    paddingTop: headerHidden ? '0px' : undefined,
+                    paddingBottom: headerHidden ? '0px' : undefined,
+                    transition: 'all 0.5s cubic-bezier(0.23, 1, 0.32, 1)',
+                    willChange: 'max-height, opacity, transform',
                     zIndex: 20
                 }}
-                className="sticky top-0 p-4 md:p-6 pt-1 md:pt-2 overflow-hidden shrink-0 shadow-2xl border-b border-[#D4AF37]/40 min-h-[120px] md:min-h-[130px] flex flex-col justify-center bg-black"
+                className="sticky top-0 overflow-hidden shrink-0 shadow-2xl border-b border-[#D4AF37]/40 flex flex-col justify-center bg-black"
             >
 
                 {/* Immersive Heritage Background Image */}
@@ -5689,10 +5939,88 @@ function App() {
         }
         return null;
     });
-    const [activeTab, setActiveTab] = useState(() => {
+    const [activeTab, _setActiveTab] = useState(() => {
         const saved = localStorage.getItem('activeTab');
         return (saved && saved !== 'details') ? saved : 'home';
     });
+    const [tabHistory, setTabHistory] = useState([localStorage.getItem('activeTab') || 'home']);
+    const [historyIndex, setHistoryIndex] = useState(0);
+
+    const setActiveTab = (tab) => {
+        if (tab === activeTab) return;
+        const newHistory = tabHistory.slice(0, historyIndex + 1);
+        newHistory.push(tab);
+        setTabHistory(newHistory);
+        setHistoryIndex(newHistory.length - 1);
+        _setActiveTab(tab);
+        if (tab !== 'details') localStorage.setItem('activeTab', tab);
+    };
+
+    const handleBack = React.useCallback(() => {
+        if (historyIndex > 0) {
+            const prevIndex = historyIndex - 1;
+            const prevTab = tabHistory[prevIndex];
+            setHistoryIndex(prevIndex);
+            _setActiveTab(prevTab);
+            if (prevTab !== 'details') localStorage.setItem('activeTab', prevTab);
+        }
+    }, [historyIndex, tabHistory]);
+
+    const handleForward = React.useCallback(() => {
+        if (historyIndex < tabHistory.length - 1) {
+            const nextIndex = historyIndex + 1;
+            const nextTab = tabHistory[nextIndex];
+            setHistoryIndex(nextIndex);
+            _setActiveTab(nextTab);
+            if (nextTab !== 'details') localStorage.setItem('activeTab', nextTab);
+        }
+    }, [historyIndex, tabHistory]);
+
+    // Global listeners for 2-finger swipe behavior
+    React.useEffect(() => {
+        let touchStartX = 0;
+        let lastWheelX = 0;
+        let wheelTimer = null;
+
+        const onWheel = (e) => {
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && Math.abs(e.deltaX) > 30) {
+                lastWheelX += e.deltaX;
+                if (wheelTimer) clearTimeout(wheelTimer);
+                wheelTimer = setTimeout(() => {
+                    if (lastWheelX > 150) { handleForward(); lastWheelX = 0; }
+                    else if (lastWheelX < -150) { handleBack(); lastWheelX = 0; }
+                }, 100);
+            }
+        };
+
+        const onTouchStart = (e) => {
+            if (e.touches.length === 2) {
+                touchStartX = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+            }
+        };
+
+        const onTouchEnd = (e) => {
+            if (touchStartX === 0) return;
+            const touchEndX = e.changedTouches.length >= 2
+                ? (e.changedTouches[0].clientX + e.changedTouches[1].clientX) / 2
+                : e.changedTouches[0].clientX;
+            const deltaX = touchEndX - touchStartX;
+            if (Math.abs(deltaX) > 100) {
+                if (deltaX > 0) handleBack();
+                else handleForward();
+            }
+            touchStartX = 0;
+        };
+
+        window.addEventListener('wheel', onWheel, { passive: true });
+        window.addEventListener('touchstart', onTouchStart, { passive: true });
+        window.addEventListener('touchend', onTouchEnd, { passive: true });
+        return () => {
+            window.removeEventListener('wheel', onWheel);
+            window.removeEventListener('touchstart', onTouchStart);
+            window.removeEventListener('touchend', onTouchEnd);
+        };
+    }, [handleBack, handleForward]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedPlace, setSelectedPlace] = useState(null);
     const [mapDestination, setMapDestination] = useState(null);
@@ -5775,91 +6103,6 @@ function App() {
     React.useEffect(() => {
         localStorage.setItem('savedPlaces', JSON.stringify(savedPlaceIds));
     }, [savedPlaceIds]);
-
-    // Gesture Navigation (Trackpad / 2-Finger Swipe)
-    React.useEffect(() => {
-        let lastSwipeTime = 0;
-        const SWIPE_COOLDOWN = 600; // ms
-        const SWIPE_THRESHOLD = 30; // sensitivity
-
-        const handleWheel = (e) => {
-            // deltaX is horizontal scroll (2-finger swipe on trackpad)
-            const dx = e.deltaX;
-            const dy = e.deltaY;
-
-            // Only trigger if horizontal movement is clearly dominant and meets threshold
-            if (Math.abs(dx) > Math.abs(dy) * 2 && Math.abs(dx) > SWIPE_THRESHOLD) {
-                const now = Date.now();
-                if (now - lastSwipeTime < SWIPE_COOLDOWN) return;
-
-                const tabs = ['home', 'explore', 'MapComponent', 'saved', 'planner'];
-                const currentIndex = tabs.indexOf(activeTab);
-
-                if (dx < -SWIPE_THRESHOLD) { // Swipe Right (Fingers move L to R) -> GO BACK
-                    lastSwipeTime = now;
-                    if (activeTab === 'details') {
-                        setActiveTab('home');
-                    } else if (currentIndex > 0) {
-                        setActiveTab(tabs[currentIndex - 1]);
-                    }
-                } else if (dx > SWIPE_THRESHOLD) { // Swipe Left (Fingers move R to L) -> GO NEXT
-                    lastSwipeTime = now;
-                    if (activeTab === 'details') return; // Don't swipe forward from details
-                    if (currentIndex !== -1 && currentIndex < tabs.length - 1) {
-                        setActiveTab(tabs[currentIndex + 1]);
-                    }
-                }
-            }
-        };
-
-        window.addEventListener('wheel', handleWheel, { passive: true });
-        return () => window.removeEventListener('wheel', handleWheel);
-    }, [activeTab]);
-
-    // Touch Swipe Navigation for Mobile
-    React.useEffect(() => {
-        let touchStartX = 0;
-        let touchStartY = 0;
-
-        const handleTouchStart = (e) => {
-            touchStartX = e.changedTouches[0].screenX;
-            touchStartY = e.changedTouches[0].screenY;
-        };
-
-        const handleTouchEnd = (e) => {
-            const touchEndX = e.changedTouches[0].screenX;
-            const touchEndY = e.changedTouches[0].screenY;
-
-            const dx = touchStartX - touchEndX;
-            const dy = touchStartY - touchEndY;
-
-            // Sensitivity threshold
-            if (Math.abs(dx) > Math.abs(dy) * 1.5 && Math.abs(dx) > 100) {
-                const tabs = ['home', 'explore', 'MapComponent', 'saved', 'planner'];
-                const currentIndex = tabs.indexOf(activeTab);
-
-                if (dx < 0) { // Swiped Right -> BACK
-                    if (activeTab === 'details') {
-                        setActiveTab('home');
-                    } else if (currentIndex > 0) {
-                        setActiveTab(tabs[currentIndex - 1]);
-                    }
-                } else { // Swiped Left -> NEXT
-                    if (activeTab === 'details') return;
-                    if (currentIndex !== -1 && currentIndex < tabs.length - 1) {
-                        setActiveTab(tabs[currentIndex + 1]);
-                    }
-                }
-            }
-        };
-
-        window.addEventListener('touchstart', handleTouchStart);
-        window.addEventListener('touchend', handleTouchEnd);
-        return () => {
-            window.removeEventListener('touchstart', handleTouchStart);
-            window.removeEventListener('touchend', handleTouchEnd);
-        };
-    }, [activeTab]);
 
     // Initial Auth Check
     React.useEffect(() => {
@@ -6084,10 +6327,24 @@ function App() {
 
     if (!isAuthenticated) {
         return (
-            <AuthPage
-                onLogin={handleLogin}
-                onSignUp={handleSignUp}
-            />
+            <div className="h-screen w-full flex flex-col overflow-y-auto bg-mysore-light dark:bg-mysore-dark">
+                <div className="flex-1">
+                    <AuthPage
+                        onLogin={handleLogin}
+                        onSignUp={handleSignUp}
+                    />
+                </div>
+                <footer className="py-12 border-t border-[#D4AF37]/10 text-center shrink-0">
+                    <div className="flex items-center justify-center gap-2 text-gray-400 dark:text-gray-500 font-medium">
+                        <span className="text-xs uppercase tracking-[0.2em] font-black">Made with</span>
+                        <Heart size={14} className="text-rose-500 fill-rose-500 animate-pulse" />
+                        <span className="text-xs uppercase tracking-[0.2em] font-black">by TECH NEXUS</span>
+                    </div>
+                    <div className="mt-4 opacity-30 grayscale contrast-125">
+                        <img src="/src/assets/logo-circle.png" alt="Tech Nexus" className="w-8 h-8 mx-auto" />
+                    </div>
+                </footer>
+            </div>
         );
     }
 
@@ -6193,6 +6450,17 @@ function App() {
                 <div className={`${['planner', 'MapComponent', 'details', 'saved', 'profile'].includes(activeTab) ? 'w-full h-full' : 'max-w-7xl mx-auto w-full'}`}>
                     {renderContent()}
                 </div>
+                {/* Footer Section - Visible on every page */}
+                <footer className="py-12 mt-12 border-t border-[#D4AF37]/10 text-center">
+                    <div className="flex items-center justify-center gap-2 text-gray-400 dark:text-gray-500 font-medium">
+                        <span className="text-xs uppercase tracking-[0.2em] font-black">Made with</span>
+                        <Heart size={14} className="text-rose-500 fill-rose-500 animate-pulse" />
+                        <span className="text-xs uppercase tracking-[0.2em] font-black">by TECH NEXUS</span>
+                    </div>
+                    <div className="mt-4 opacity-30 grayscale contrast-125">
+                        <img src="/src/assets/logo-circle.png" alt="Tech Nexus" className="w-8 h-8 mx-auto" />
+                    </div>
+                </footer>
             </div>
 
             {/* Premium Heritage Guide ChatBot */}
