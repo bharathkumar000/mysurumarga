@@ -413,7 +413,7 @@ export const Explore = ({ places, onCardClick, savedPlaceIds = [], onToggleSave,
     return (
         <div className="pb-32 bg-transparent min-h-screen">
             {/* Fixed/Sticky Header for Explore */}
-            <div className="sticky top-[72px] md:top-[80px] z-40 bg-[#fef9e7]/90 dark:bg-black/90 backdrop-blur-3xl border-b border-[#D4AF37]/10 transition-all shadow-lg pb-2">
+            <div className="sticky top-0 z-40 bg-[#fef9e7]/90 dark:bg-black/90 backdrop-blur-3xl border-b border-[#D4AF37]/10 transition-all shadow-lg pb-2">
                 <div className="px-6 md:px-12 py-4 md:py-6 max-w-7xl mx-auto w-full">
                     <div className="relative w-full">
                         <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
@@ -1201,34 +1201,35 @@ export const Navbar = ({ onProfileClick, activeTab, setActiveTab }) => {
         </button>
     );
 
-    <nav className="flex justify-between items-center px-4 md:px-8 h-16 md:h-[72px] transition-colors duration-200">
-        <div className="flex flex-col cursor-pointer shrink-0" onClick={() => setActiveTab && setActiveTab('home')}>
-            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 tracking-[0.2em] uppercase hidden md:block">Heritage Portal</span>
-            <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-1">
-                Mysuru <span className="text-mysore-600">Marga</span>
-            </h1>
-        </div>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center gap-1 bg-white/70 dark:bg-gray-800/70 backdrop-blur-3xl p-1.5 rounded-full border border-gray-100 dark:border-gray-700 shadow-sm relative z-50">
-            <NavLink id="home" icon={Home} label="Home" />
-            <NavLink id="explore" icon={Compass} label="Explore" />
-            <NavLink id="MapComponent" icon={MapIcon} label="Map" />
-            <NavLink id="saved" icon={Heart} label="Saved" />
-            <NavLink id="planner" icon={Sparkles} label="Planner" />
-        </div>
-
-        <button
-            onClick={onProfileClick}
-            className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-white/60 dark:hover:bg-gray-700/60 transition-all shadow-sm group shrink-0"
-            aria-label="Profile"
-        >
-            <div className="relative">
-                <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                <div className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+    return (
+        <nav className="flex justify-between items-center px-4 md:px-8 h-16 md:h-[72px] transition-colors duration-200">
+            <div className="flex flex-col cursor-pointer shrink-0" onClick={() => setActiveTab && setActiveTab('home')}>
+                <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 tracking-[0.2em] uppercase hidden md:block">Heritage Portal</span>
+                <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-1">
+                    Mysuru <span className="text-mysore-600">Marga</span>
+                </h1>
             </div>
-        </button>
-    </nav>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-1 bg-white/70 dark:bg-gray-800/70 backdrop-blur-3xl p-1.5 rounded-full border border-gray-100 dark:border-gray-700 shadow-sm relative z-50">
+                <NavLink id="home" icon={Home} label="Home" />
+                <NavLink id="explore" icon={Compass} label="Explore" />
+                <NavLink id="MapComponent" icon={MapIcon} label="Map" />
+                <NavLink id="saved" icon={Heart} label="Saved" />
+                <NavLink id="planner" icon={Sparkles} label="Planner" />
+            </div>
+
+            <button
+                onClick={onProfileClick}
+                className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-white/60 dark:hover:bg-gray-700/60 transition-all shadow-sm group shrink-0"
+                aria-label="Profile"
+            >
+                <div className="relative">
+                    <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <div className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                </div>
+            </button>
+        </nav>
     );
 };
 
@@ -3129,13 +3130,6 @@ export const TravaAI = ({ onBack }) => {
 
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-30">
                 <div className="bg-white/90 dark:bg-gray-900/95 backdrop-blur-3xl p-4 rounded-[2rem] shadow-2xl border border-white dark:border-gray-800 ring-1 ring-black/5">
-                    <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
-                        {["Somnathpur", "Best period?", "Eateries"].map(s => (
-                            <button key={s} onClick={() => handleTravaMessage(s)} className="whitespace-nowrap px-4 py-2 bg-[#D4AF37]/10 dark:bg-white/5 border border-[#D4AF37]/20 dark:border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-[#B8962F] dark:text-gray-400 hover:bg-[#D4AF37] hover:text-black transition-all transform active:scale-95 disabled:opacity-50" disabled={isTravaLoading}>
-                                {s}
-                            </button>
-                        ))}
-                    </div>
                     <div className="relative flex items-center gap-3">
                         <input
                             value={input}
@@ -3709,7 +3703,7 @@ export const TravaAI = ({ onBack }) => {
                     willChange: 'transform, opacity',
                     zIndex: 20
                 }}
-                className="sticky top-[64px] md:top-[72px] p-8 md:p-10 pt-10 md:pt-12 overflow-hidden shrink-0 shadow-2xl border-b border-[#D4AF37]/40 min-h-[260px] flex flex-col justify-center"
+                className="sticky top-0 p-4 md:p-6 pt-1 md:pt-2 overflow-hidden shrink-0 shadow-2xl border-b border-[#D4AF37]/40 min-h-[120px] md:min-h-[130px] flex flex-col justify-center bg-black"
             >
 
                 {/* Immersive Heritage Background Image */}
@@ -3730,51 +3724,49 @@ export const TravaAI = ({ onBack }) => {
 
                 <button
                     onClick={onBack}
-                    className="absolute left-6 top-8 w-12 h-12 bg-white/20 hover:bg-[#D4AF37]/30 backdrop-blur-xl border border-white/30 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 active:scale-90 z-30 group"
+                    className="absolute left-4 top-4 w-10 h-10 bg-white/20 hover:bg-[#D4AF37]/30 backdrop-blur-xl border border-white/30 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 active:scale-90 z-30 group"
                 >
-                    <ArrowLeft size={22} className="text-[#D4AF37] group-hover:-translate-x-1 transition-transform" />
+                    <ArrowLeft size={20} className="text-[#D4AF37] group-hover:-translate-x-1 transition-transform" />
                 </button>
 
-                {/* Invite Friend Button - Top Right */}
-                <button
-                    onClick={() => setShowInviteModal(true)}
-                    className="absolute right-6 top-8 flex items-center gap-2 px-5 py-3 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 backdrop-blur-xl border border-[#D4AF37]/30 rounded-full text-[#D4AF37] transition-all hover:scale-105 active:scale-95 z-30"
-                >
-                    <Users size={16} />
-                    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Invite</span>
-                </button>
-
-                <div className="flex flex-col items-center text-center space-y-3 relative z-10">
-                    <div className="flex items-center gap-4 animate-in zoom-in duration-700">
-                        <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-[#D4AF37] to-[#B8962F] rounded-2xl flex items-center justify-center shadow-[0_0_50px_rgba(212,175,55,0.4)] border border-white/30 transform hover:rotate-6 transition-transform duration-500">
-                            <Sparkles className="text-black w-8 h-8 md:w-9 md:h-9 animate-pulse" />
+                <div className="flex flex-col items-center text-center space-y-2 relative z-10">
+                    <div className="flex items-center gap-3 animate-in zoom-in duration-700">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-to-br from-[#D4AF37] to-[#B8962F] rounded-xl flex items-center justify-center shadow-[0_0_40px_rgba(212,175,55,0.3)] border border-white/20 transform hover:rotate-6 transition-transform duration-500">
+                            <Sparkles className="text-black w-6 h-6 md:w-7 md:h-7 animate-pulse" />
                         </div>
                         <div className="text-left">
-                            <h2 className="text-[#D4AF37] text-4xl md:text-5xl font-serif tracking-tight drop-shadow-2xl">Trava AI</h2>
-                            <p className="text-gray-300 text-[9px] font-black uppercase tracking-[0.4em] mt-0.5 ml-1 opacity-90 drop-shadow">The Heritage Guide</p>
+                            <h2 className="text-[#D4AF37] text-3xl md:text-4xl font-serif tracking-tight drop-shadow-2xl">Trava AI</h2>
+                            <p className="text-gray-300 text-[8px] font-black uppercase tracking-[0.3em] mt-0.5 ml-0.5 opacity-90 drop-shadow">The Heritage Guide</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-8 md:mt-10 flex justify-center relative z-10">
-                    <div className="bg-black/60 backdrop-blur-3xl p-2 rounded-[2rem] flex border border-[#D4AF37]/30 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)]">
+                <div className="mt-3 md:mt-4 flex justify-center relative z-10">
+                    <div className="bg-black/60 backdrop-blur-3xl p-1 md:p-1.5 rounded-[1.5rem] flex border border-[#D4AF37]/30 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)]">
                         <button
                             onClick={() => setMode('chat')}
-                            className={`px-8 md:px-12 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'chat' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
+                            className={`px-6 md:px-10 py-2 md:py-2.5 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'chat' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
                         >
                             <MessageSquare size={14} className={mode === 'chat' ? 'text-black' : 'text-gray-600'} />
                             Chat
                         </button>
                         <button
                             onClick={() => setMode('planner')}
-                            className={`px-8 md:px-12 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'planner' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
+                            className={`px-6 md:px-10 py-2 md:py-2.5 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'planner' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
                         >
                             <LayoutDashboard size={14} className={mode === 'planner' ? 'text-black' : 'text-gray-600'} />
                             Planner
                         </button>
                         <button
+                            onClick={() => setShowInviteModal(true)}
+                            className="px-6 md:px-10 py-2 md:py-2.5 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 text-gray-400 hover:text-[#D4AF37] hover:bg-white/5"
+                        >
+                            <Users size={14} className="text-gray-600" />
+                            Invite
+                        </button>
+                        <button
                             onClick={() => setMode('budget')}
-                            className={`px-8 md:px-12 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'budget' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
+                            className={`px-6 md:px-10 py-2 md:py-2.5 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'budget' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
                         >
                             <IndianRupee size={14} className={mode === 'budget' ? 'text-black' : 'text-gray-600'} />
                             Split
@@ -6223,9 +6215,9 @@ function App() {
         }
     };
     return (
-        <div className="min-h-screen w-full bg-mysore-light dark:bg-mysore-dark bg-fixed transition-colors duration-200 selection:bg-[#D4AF37]/30 flex flex-col relative h-screen overflow-hidden">
+        <div className="h-screen w-full bg-mysore-light dark:bg-mysore-dark bg-fixed transition-colors duration-200 selection:bg-[#D4AF37]/30 flex flex-col overflow-hidden">
             {(activeTab !== 'login') && (
-                <div className="sticky top-0 z-50 bg-[#fef9e7] dark:bg-black border-b border-[#D4AF37]/30 shadow-xl shadow-black/5">
+                <div className="sticky top-0 z-50 bg-[#fef9e7] dark:bg-black border-b border-[#D4AF37]/30 shadow-xl shadow-black/5 shrink-0">
                     <div className="max-w-7xl mx-auto w-full">
                         <Navbar
                             onProfileClick={() => setActiveTab('profile')}
@@ -6239,8 +6231,8 @@ function App() {
                 </div>
             )}
 
-            <div className={`flex-1 w-full overflow-hidden ${['MapComponent', 'details', 'planner', 'profile'].includes(activeTab) ? 'h-full flex flex-col' : ''}`}>
-                <div className={`${activeTab === 'planner' ? 'w-full h-full' : 'max-w-7xl mx-auto w-full h-full'}`}>
+            <div className="flex-1 w-full overflow-y-auto min-h-0 bg-transparent">
+                <div className={`${['planner', 'MapComponent', 'details', 'saved', 'profile'].includes(activeTab) ? 'w-full h-full' : 'max-w-7xl mx-auto w-full'}`}>
                     {renderContent()}
                 </div>
             </div>
