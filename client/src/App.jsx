@@ -2947,9 +2947,8 @@ export const AuthPage = ({ onLogin, onSignUp }) => {
 
 
 export const TravaAI = ({ onBack }) => {
-    const [mode, setMode] = useState('chat'); // 'chat', 'planner', or 'budget'
+    const [mode, setMode] = useState('chat'); // 'chat', 'planner', 'budget', or 'invite'
     const [headerHidden, setHeaderHidden] = useState(false);
-    const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteName, setInviteName] = useState('');
     const [inviteCopied, setInviteCopied] = useState(false);
     const lastScrollY = useRef(0);
@@ -3758,10 +3757,10 @@ export const TravaAI = ({ onBack }) => {
                             Planner
                         </button>
                         <button
-                            onClick={() => setShowInviteModal(true)}
-                            className="px-6 md:px-10 py-2 md:py-2.5 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 text-gray-400 hover:text-[#D4AF37] hover:bg-white/5"
+                            onClick={() => setMode('invite')}
+                            className={`px-6 md:px-10 py-2 md:py-2.5 rounded-[1.2rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'invite' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
                         >
-                            <Users size={14} className="text-gray-600" />
+                            <Users size={14} className={mode === 'invite' ? 'text-black' : 'text-gray-600'} />
                             Invite
                         </button>
                         <button
@@ -3779,49 +3778,8 @@ export const TravaAI = ({ onBack }) => {
             <div ref={contentRef} className="flex-1 overflow-y-auto overflow-x-hidden relative">
                 {/* Subtle Background pattern */}
                 <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/asfalt-dark.pattern')]"></div>
-                {mode === 'chat' ? renderChat() : mode === 'planner' ? renderPlanner() : renderBudgetSplitter()}
+                {mode === 'chat' ? renderChat() : mode === 'planner' ? renderPlanner() : mode === 'budget' ? renderBudgetSplitter() : renderInvite()}
             </div>
-
-            {/* Invite Friend Modal */}
-            {showInviteModal && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowInviteModal(false)}>
-                    <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
-                        <div className="flex items-center gap-3 mb-6">
-                            <div className="w-12 h-12 bg-[#D4AF37]/10 rounded-2xl flex items-center justify-center">
-                                <Users className="w-6 h-6 text-[#D4AF37]" />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-serif text-gray-900 dark:text-white">Invite a Friend</h3>
-                                <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">Share this trip plan</p>
-                            </div>
-                        </div>
-                        <div className="space-y-4">
-                            <div>
-                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2 mb-2 block">Friend's Name</label>
-                                <input
-                                    value={inviteName}
-                                    onChange={(e) => setInviteName(e.target.value)}
-                                    placeholder="e.g., Rahul, Priya..."
-                                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl py-4 px-6 text-sm font-medium focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
-                                />
-                            </div>
-                            <button
-                                onClick={handleInvite}
-                                className="w-full py-5 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Share2 size={16} />
-                                {inviteCopied ? 'Link Copied!' : 'Share Invite Link'}
-                            </button>
-                            <button
-                                onClick={() => setShowInviteModal(false)}
-                                className="w-full py-3 text-gray-400 text-xs font-bold uppercase tracking-widest hover:text-gray-600 transition-colors"
-                            >
-                                Cancel
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
