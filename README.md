@@ -35,7 +35,7 @@ While we've started with the royal city of Mysuru, the architecture of Mysuru Ma
 
 ---
 
-## 🛠️ Technology Stack
+## 🛠️ Tech Stack
 
 <div align="center">
   <table>
@@ -110,7 +110,7 @@ mysuru-marga/
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/srinivaspandurangi/mysuru-marga.git
+git clone https://github.com/bharathkumar000/mysurumarga.git
 
 # 2. Install dependencies
 npm install
