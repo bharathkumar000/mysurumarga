@@ -266,10 +266,10 @@ export const CategoryItem = ({ icon: _Icon, label, color, bgColor, onClick, isSe
         onClick={() => onClick && onClick(label)}
         className="flex flex-col items-center gap-3 min-w-[80px] group cursor-pointer"
     >
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md ${isSelected ? 'bg-[#D4AF37] ring-4 ring-[#D4AF37]/30 shadow-lg scale-110' : bgColor}`}>
-            <_Icon className={`w-7 h-7 ${isSelected ? 'text-white' : color}`} />
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md ${bgColor} ${isSelected ? 'ring-4 ring-[#D4AF37] shadow-xl scale-110' : ''}`}>
+            <_Icon className={`w-7 h-7 ${color}`} />
         </div>
-        <span className={`text-[11px] font-bold text-center tracking-tight transition-colors ${isSelected ? 'text-[#D4AF37]' : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'}`}>{label}</span>
+        <span className={`text-[11px] font-bold text-center tracking-tight transition-colors ${isSelected ? 'text-[#D4AF37] font-black' : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'}`}>{label}</span>
     </div>
 );
 
@@ -412,20 +412,23 @@ export const Explore = ({ places, onCardClick, savedPlaceIds = [], onToggleSave,
 
     return (
         <div className="pb-32 bg-transparent min-h-screen">
-            <div className="sticky top-[80px] md:top-[88px] bg-transparent z-30 px-6 md:px-12 py-4 md:py-6 transition-all">
-                <div className="relative w-full">
-                    <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search heritage, nature, food..."
-                        className="w-full bg-gray-50 dark:bg-gray-900 rounded-[1.5rem] py-3.5 md:py-4 pl-14 pr-6 text-sm font-medium dark:text-gray-200 focus:outline-none focus:ring-4 focus:ring-[#D4AF37]/10 transition-all placeholder-gray-400"
-                    />
+            {/* Fixed/Sticky Header for Explore */}
+            <div className="sticky top-[72px] md:top-[80px] z-40 bg-[#fef9e7]/90 dark:bg-black/90 backdrop-blur-3xl border-b border-[#D4AF37]/10 transition-all shadow-lg pb-2">
+                <div className="px-6 md:px-12 py-4 md:py-6 max-w-7xl mx-auto w-full">
+                    <div className="relative w-full">
+                        <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                        <input
+                            type="text"
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            placeholder="Search heritage, nature, food..."
+                            className="w-full bg-white dark:bg-gray-900 rounded-[1.5rem] py-3.5 md:py-4 pl-14 pr-6 text-sm font-medium dark:text-gray-200 focus:outline-none focus:ring-4 focus:ring-[#D4AF37]/10 transition-all placeholder-gray-400 shadow-sm border border-gray-100 dark:border-gray-800"
+                        />
+                    </div>
                 </div>
 
                 {/* Categories Bar Container - Sticks below search */}
-                <div className="bg-[#f3e3ad]/40 dark:bg-black/40 backdrop-blur-xl border-b border-[#D4AF37]/5 px-0 md:px-6">
+                <div className="px-0 md:px-6">
                     <div className="max-w-7xl mx-auto">
                         <Categories onCategoryClick={onCategoryClick} selectedCategory={selectedCategory} />
                     </div>
@@ -1198,36 +1201,34 @@ export const Navbar = ({ onProfileClick, activeTab, setActiveTab }) => {
         </button>
     );
 
-    return (
-        <nav className="flex justify-between items-center px-4 md:px-8 py-3 transition-colors duration-200">
-            <div className="flex flex-col cursor-pointer" onClick={() => setActiveTab && setActiveTab('home')}>
-                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 tracking-wide hidden md:block">Welcome to</span>
-                <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
-                    Mysuru <span className="text-mysore-600">Marga</span>
-                </h1>
-            </div>
+    <nav className="flex justify-between items-center px-4 md:px-8 h-16 md:h-[72px] transition-colors duration-200">
+        <div className="flex flex-col cursor-pointer shrink-0" onClick={() => setActiveTab && setActiveTab('home')}>
+            <span className="text-[10px] font-bold text-gray-500 dark:text-gray-400 tracking-[0.2em] uppercase hidden md:block">Heritage Portal</span>
+            <h1 className="text-xl md:text-2xl font-black text-gray-900 dark:text-white tracking-tight flex items-center gap-1">
+                Mysuru <span className="text-mysore-600">Marga</span>
+            </h1>
+        </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center gap-1 bg-white/70 dark:bg-gray-800/70 backdrop-blur-3xl p-1.5 rounded-full border border-gray-100 dark:border-gray-700 shadow-sm relative z-50 overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/5 via-transparent to-[#D4AF37]/5 pointer-events-none"></div>
-                <NavLink id="home" icon={Home} label="Home" />
-                <NavLink id="explore" icon={Compass} label="Explore" />
-                <NavLink id="MapComponent" icon={MapIcon} label="Map" />
-                <NavLink id="saved" icon={Heart} label="Saved" />
-                <NavLink id="planner" icon={Sparkles} label="Planner" />
-            </div>
+        {/* Desktop Navigation */}
+        <div className="hidden md:flex items-center gap-1 bg-white/70 dark:bg-gray-800/70 backdrop-blur-3xl p-1.5 rounded-full border border-gray-100 dark:border-gray-700 shadow-sm relative z-50">
+            <NavLink id="home" icon={Home} label="Home" />
+            <NavLink id="explore" icon={Compass} label="Explore" />
+            <NavLink id="MapComponent" icon={MapIcon} label="Map" />
+            <NavLink id="saved" icon={Heart} label="Saved" />
+            <NavLink id="planner" icon={Sparkles} label="Planner" />
+        </div>
 
-            <button
-                onClick={onProfileClick}
-                className="w-12 h-12 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-white/60 dark:hover:bg-gray-700/60 transition-all shadow-sm group"
-                aria-label="Profile"
-            >
-                <div className="relative">
-                    <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                    <div className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
-                </div>
-            </button>
-        </nav>
+        <button
+            onClick={onProfileClick}
+            className="w-10 h-10 md:w-11 md:h-11 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-white/60 dark:hover:bg-gray-700/60 transition-all shadow-sm group shrink-0"
+            aria-label="Profile"
+        >
+            <div className="relative">
+                <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                <div className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+            </div>
+        </button>
+    </nav>
     );
 };
 
@@ -1361,7 +1362,7 @@ export const PlaceDetails = ({ place, onBack, isSaved, onToggleSave, userEmail, 
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
 
                     {/* Back & Action Buttons */}
-                    <div className="absolute top-8 inset-x-8 flex items-center justify-between z-30">
+                    <div className="absolute top-24 md:top-28 inset-x-8 flex items-center justify-between z-30">
                         <button
                             onClick={onBack}
                             className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-2xl flex items-center justify-center text-white border border-white/20 hover:bg-white/20 hover:scale-110 active:scale-90 transition-all shadow-2xl"
@@ -3126,16 +3127,16 @@ export const TravaAI = ({ onBack }) => {
                 ))}
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 z-20">
-                <div className="max-w-4xl mx-auto bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-gray-800">
-                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
-                        {["Tell me about Somnathpur", "Best period to visit?", "Top 5 local eateries"].map(s => (
-                            <button key={s} onClick={() => handleTravaMessage(s)} className="whitespace-nowrap px-5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50" disabled={isTravaLoading}>
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-30">
+                <div className="bg-white/90 dark:bg-gray-900/95 backdrop-blur-3xl p-4 rounded-[2rem] shadow-2xl border border-white dark:border-gray-800 ring-1 ring-black/5">
+                    <div className="flex gap-2 mb-3 overflow-x-auto pb-1 scrollbar-hide">
+                        {["Somnathpur", "Best period?", "Eateries"].map(s => (
+                            <button key={s} onClick={() => handleTravaMessage(s)} className="whitespace-nowrap px-4 py-2 bg-[#D4AF37]/10 dark:bg-white/5 border border-[#D4AF37]/20 dark:border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-[#B8962F] dark:text-gray-400 hover:bg-[#D4AF37] hover:text-black transition-all transform active:scale-95 disabled:opacity-50" disabled={isTravaLoading}>
                                 {s}
                             </button>
                         ))}
                     </div>
-                    <div className="relative group">
+                    <div className="relative flex items-center gap-3">
                         <input
                             value={input}
                             onChange={(e) => setInput(e.target.value)}
@@ -3146,14 +3147,14 @@ export const TravaAI = ({ onBack }) => {
                                 }
                             }}
                             disabled={isTravaLoading}
-                            placeholder={isTravaLoading ? "Trava AI is thinking..." : "Type your curiosity about Mysuru..."}
-                            className="w-full bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl py-5 pl-7 pr-16 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 transition-all placeholder-gray-400 font-medium disabled:opacity-60"
+                            placeholder={isTravaLoading ? "Thinking..." : "Ask Trava AI about Mysuru..."}
+                            className="flex-1 bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-white/10 rounded-2xl py-4 px-6 text-sm focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 transition-all disabled:opacity-60"
                         />
                         <button
                             onClick={() => handleTravaMessage()}
                             disabled={isTravaLoading || !input.trim()}
-                            className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-black dark:bg-[#D4AF37] rounded-xl flex items-center justify-center text-white dark:text-black shadow-md hover:scale-110 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100">
-                            {isTravaLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send size={20} />}
+                            className="w-12 h-12 bg-[#D4AF37] rounded-xl flex items-center justify-center text-black shadow-lg hover:scale-105 active:scale-95 transition-all disabled:opacity-50">
+                            {isTravaLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send size={18} />}
                         </button>
                     </div>
                 </div>
@@ -3698,19 +3699,40 @@ export const TravaAI = ({ onBack }) => {
     );
 
     return (
-        <div className="fixed inset-0 z-[100] flex flex-col h-screen max-h-screen bg-transparent transition-colors overflow-hidden font-sans">
+        <div className="flex flex-col h-full w-full bg-transparent transition-colors overflow-hidden font-sans">
             {/* Immersive Cinematic Header */}
-            <div style={{ transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)', opacity: headerHidden ? 0 : 1, transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease', willChange: 'transform, opacity', position: 'relative', zIndex: 10 }} className="bg-gradient-to-br from-[#111111] via-[#1a1a1a] to-[#000000] p-10 pt-16 overflow-hidden shrink-0 shadow-2xl border-b border-[#D4AF37]/20">
+            <div
+                style={{
+                    transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)',
+                    opacity: headerHidden ? 0 : 1,
+                    transition: 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s ease',
+                    willChange: 'transform, opacity',
+                    zIndex: 20
+                }}
+                className="sticky top-[64px] md:top-[72px] p-8 md:p-10 pt-10 md:pt-12 overflow-hidden shrink-0 shadow-2xl border-b border-[#D4AF37]/40 min-h-[260px] flex flex-col justify-center"
+            >
+
+                {/* Immersive Heritage Background Image */}
+                <div className="absolute inset-0 z-0">
+                    <img
+                        src="/src/assets/trava-bg.png"
+                        alt="Heritage Header"
+                        className="w-full h-full object-cover transform scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/70 to-black/90"></div>
+                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent"></div>
+                </div>
+
                 {/* Dynamic Background Noise/Glows */}
-                <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/black-paper.png')]"></div>
-                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#D4AF37]/5 rounded-full blur-[120px] -mr-48 -mt-48 transition-all duration-1000"></div>
-                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#D4AF37]/5 rounded-full blur-[100px] -ml-24 -mb-24"></div>
+                <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/black-paper.png')] z-[1]"></div>
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#D4AF37]/10 rounded-full blur-[120px] -mr-48 -mt-48 transition-all duration-1000 z-[1]"></div>
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#D4AF37]/10 rounded-full blur-[100px] -ml-24 -mb-24 z-[1]"></div>
 
                 <button
                     onClick={onBack}
-                    className="absolute left-6 top-8 w-12 h-12 bg-white/5 hover:bg-[#D4AF37]/10 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 active:scale-90 z-30"
+                    className="absolute left-6 top-8 w-12 h-12 bg-white/20 hover:bg-[#D4AF37]/30 backdrop-blur-xl border border-white/30 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 active:scale-90 z-30 group"
                 >
-                    <ArrowLeft size={22} className="text-[#D4AF37]" />
+                    <ArrowLeft size={22} className="text-[#D4AF37] group-hover:-translate-x-1 transition-transform" />
                 </button>
 
                 {/* Invite Friend Button - Top Right */}
@@ -3722,20 +3744,20 @@ export const TravaAI = ({ onBack }) => {
                     <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Invite</span>
                 </button>
 
-                <div className="flex flex-col items-center text-center space-y-4 relative z-10">
+                <div className="flex flex-col items-center text-center space-y-3 relative z-10">
                     <div className="flex items-center gap-4 animate-in zoom-in duration-700">
-                        <div className="w-16 h-16 bg-gradient-to-br from-[#D4AF37] to-[#B8962F] rounded-3xl flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.3)] border border-white/20 transform hover:rotate-12 transition-transform duration-500">
-                            <Sparkles className="text-black w-9 h-9 animate-pulse" />
+                        <div className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-br from-[#D4AF37] to-[#B8962F] rounded-2xl flex items-center justify-center shadow-[0_0_50px_rgba(212,175,55,0.4)] border border-white/30 transform hover:rotate-6 transition-transform duration-500">
+                            <Sparkles className="text-black w-8 h-8 md:w-9 md:h-9 animate-pulse" />
                         </div>
                         <div className="text-left">
-                            <h2 className="text-[#D4AF37] text-5xl font-serif tracking-tight">Trava AI</h2>
-                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] mt-1 ml-1 opacity-80">Heritage Intelligence</p>
+                            <h2 className="text-[#D4AF37] text-4xl md:text-5xl font-serif tracking-tight drop-shadow-2xl">Trava AI</h2>
+                            <p className="text-gray-300 text-[9px] font-black uppercase tracking-[0.4em] mt-0.5 ml-1 opacity-90 drop-shadow">The Heritage Guide</p>
                         </div>
                     </div>
                 </div>
 
-                <div className="mt-12 flex justify-center">
-                    <div className="bg-black/40 backdrop-blur-3xl p-2 rounded-[2rem] flex border border-[#D4AF37]/20 shadow-3xl">
+                <div className="mt-8 md:mt-10 flex justify-center relative z-10">
+                    <div className="bg-black/60 backdrop-blur-3xl p-2 rounded-[2rem] flex border border-[#D4AF37]/30 shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)]">
                         <button
                             onClick={() => setMode('chat')}
                             className={`px-8 md:px-12 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'chat' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
@@ -6201,9 +6223,9 @@ function App() {
         }
     };
     return (
-        <div className="min-h-screen w-full bg-mysore-light dark:bg-mysore-dark bg-fixed transition-colors duration-200 selection:bg-[#D4AF37]/30 flex flex-col relative pb-24 md:pb-0">
-            {activeTab !== 'profile' && activeTab !== 'details' && (
-                <div className="sticky top-0 z-40 bg-[#f3e3ad]/60 dark:bg-black/60 backdrop-blur-xl border-b border-[#D4AF37]/20 pt-[env(safe-area-inset-top)] pb-2 shadow-sm">
+        <div className="min-h-screen w-full bg-mysore-light dark:bg-mysore-dark bg-fixed transition-colors duration-200 selection:bg-[#D4AF37]/30 flex flex-col relative h-screen overflow-hidden">
+            {(activeTab !== 'login') && (
+                <div className="sticky top-0 z-50 bg-[#fef9e7] dark:bg-black border-b border-[#D4AF37]/30 shadow-xl shadow-black/5">
                     <div className="max-w-7xl mx-auto w-full">
                         <Navbar
                             onProfileClick={() => setActiveTab('profile')}
@@ -6217,8 +6239,8 @@ function App() {
                 </div>
             )}
 
-            <div className={`flex-1 w-full ${activeTab === 'MapComponent' || activeTab === 'details' ? 'h-full flex flex-col' : ''}`}>
-                <div className="max-w-7xl mx-auto w-full h-full">
+            <div className={`flex-1 w-full overflow-hidden ${['MapComponent', 'details', 'planner', 'profile'].includes(activeTab) ? 'h-full flex flex-col' : ''}`}>
+                <div className={`${activeTab === 'planner' ? 'w-full h-full' : 'max-w-7xl mx-auto w-full h-full'}`}>
                     {renderContent()}
                 </div>
             </div>

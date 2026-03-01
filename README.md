@@ -1,82 +1,135 @@
-# Mysuru Marga - srinivas - Soulful Heritage Explorer
-
-A premium, state-of-the-art web application dedicated to exploring the rich heritage, hidden gems, and local artisans of Mysuru.
-
-![Mysuru Marga](https://img.shields.io/badge/Status-Premium-gold?style=for-the-badge)
-
-## Technology Stack
-
 <div align="center">
-  <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React" />
-  <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white" alt="Vite" />
-  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind" />
-  <img src="https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white" alt="Supabase" />
+  <img src="./images/logo.png" alt="Mysuru Marga Logo" width="120" />
 
-  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="JavaScript" />
-  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5" />
-  <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3" />
+  # 🏰 Mysuru Marga
+  ### *The Soulful Heritage Explorer*
+
+  <p align="center">
+    <a href="https://github.com/srinivaspandurangi/mysuru-marga">
+      <img src="https://img.shields.io/badge/Release-v2.0.0-gold?style=for-the-badge&logo=github" alt="Release" />
+    </a>
+    <a href="#">
+      <img src="https://img.shields.io/badge/Status-Premium-3ECF8E?style=for-the-badge&logo=supabase" alt="Status" />
+    </a>
+    <a href="#">
+      <img src="https://img.shields.io/badge/UI-Modern_Glass-007ACC?style=for-the-badge&logo=tailwindcss" alt="UI" />
+    </a>
+  </p>
+
+  ---
 </div>
 
-## Project Structure
+![Mysuru Marga Hero Banner](./images/hero_banner.png)
 
-The project follows a clean separation of concerns between the client-side experience and the server-side logic.
+## ✨ Overview
 
-```text
-/
-├── client/                 # Frontend (React + Vite)
-│   ├── src/                # Soul of the application
-│   │   ├── App.jsx         # Unified application engine (Consolidated)
-│   │   └── index.css       # Unified design system
-│   ├── public/             # Static heritage assets
-│   ├── vite.config.js      # Build configuration
-│   └── tailwind.config.js  # Theme / Color tokens
-│
-├── server/                 # Backend (Vercel Serverless)
-│   └── api/                # API Endpoints
-
-│
-└── package.json            # Root configuration & scripts
-```
-
-## Getting Started
-
-### Prerequisites
-
-- Node.js (v18+)
-- Supabase Project (for live heritage data)
-
-
-### Installation
-
-1. Clone the repository
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Set up environment variables:
-   Create a `.env` file in the `client/` directory based on `.env.example`.
-
-### Development
-
-Run the unified development server:
-```bash
-npm run dev
-```
-
-## Features
-
-- **Unified Heritage Engine**: All components and pages are consolidated for lightning-fast performance and easier maintenance.
-- **Sovereign Dark Mode**: A custom-crafted dark theme inspired by the royalty of Mysuru.
-- **Interactive Heritage Map**: Real-time spatial exploration of monuments and hidden spots.
-- **AI Heritage Guide**: Interactive chat interface providing heritage information.
-- **Partner Dashboard**: A dedicated interface for local business owners to manage their spots and events.
-- **Admin Command Center**: Complete oversight of users, invitations, and system security.
-
-## Security
-
-- **Supabase Auth**: Secure authentication and identity management.
-- **Input Sanitization**: Using DOMPurify to protect against XSS in dynamic traveler echoes.
+**Mysuru Marga** is a premium, state-of-the-art web application dedicated to exploring the rich heritage, hidden gems, and local artisans of Mysuru. Built for the modern traveler, it blends traditional storytelling with cutting-edge technology to provide a seamless, soulful journey through the "Heritage City."
 
 ---
 
-*Crafted with soul for the Heritage City of Mysuru.*
+## 🛠️ Technology Stack
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center" width="96">
+        <img src="https://skillicons.dev/icons?i=react" width="48" height="48" alt="React" />
+        <br />React
+      </td>
+      <td align="center" width="96">
+        <img src="https://skillicons.dev/icons?i=vite" width="48" height="48" alt="Vite" />
+        <br />Vite
+      </td>
+      <td align="center" width="96">
+        <img src="https://skillicons.dev/icons?i=tailwind" width="48" height="48" alt="Tailwind CSS" />
+        <br />Tailwind
+      </td>
+      <td align="center" width="96">
+        <img src="https://skillicons.dev/icons?i=supabase" width="48" height="48" alt="Supabase" />
+        <br />Supabase
+      </td>
+      <td align="center" width="96">
+        <img src="https://skillicons.dev/icons?i=nodejs" width="48" height="48" alt="Node.js" />
+        <br />Node.js
+      </td>
+      <td align="center" width="96">
+        <img src="https://skillicons.dev/icons?i=vercel" width="48" height="48" alt="Vercel" />
+        <br />Vercel
+      </td>
+    </tr>
+  </table>
+</div>
+
+---
+
+## 🚀 Key Features
+
+| Feature | Description |
+| :--- | :--- |
+| **🏰 Unified Heritage Engine** | Lightning-fast, consolidated architecture for premium performance. |
+| **🌙 Sovereign Dark Mode** | A custom-crafted dark theme inspired by the royalty of Mysuru. |
+| **🗺️ Interactive Heritage Map** | Real-time spatial exploration of monuments and hidden spots. |
+| **🤖 AI Heritage Guide** | Interactive chat interface powered by heritage-aware AI models. |
+| **🏢 Partner Dashboard** | Empowering local business owners to showcase their spots. |
+| **🛡️ Admin Command Center** | Complete system oversight with secure administrative controls. |
+
+---
+
+## 📂 Project Architecture
+
+```text
+mysuru-marga/
+├── client/                 # Frontend 🖥️
+│   ├── src/                # Soul of the app
+│   │   ├── App.jsx         # Unified application engine
+│   │   └── index.css       # Design System
+│   ├── public/             # Static Assets
+│   └── tailwind.config.js  # Color Tokens & Theme
+├── server/                 # Backend ⚙️
+│   └── api/                # Serverless Endpoints
+└── images/                 # Project Media 🖼️
+```
+
+---
+
+## 🚦 Getting Started
+
+### 📦 Prerequisites
+- **Node.js** (v18+)
+- **Supabase** Project (for live heritage data)
+
+### 🛠️ Installation
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/srinivaspandurangi/mysuru-marga.git
+
+# 2. Install dependencies
+npm install
+
+# 3. Environment Setup
+# Create .env in /client based on .env.example
+```
+
+### 🏃 Development
+
+```bash
+# Launch the unified development server
+npm run dev
+```
+
+---
+
+## 🔒 Security & Performance
+
+- **Supabase Auth**: Bank-grade security for identity management.
+- **Optimized Assets**: Using Next-gen Image formats (WebP) for rapid loading.
+- **Sanitized Inputs**: Zero-trust policy using DOMPurify for traveler echoes.
+
+---
+
+<div align="center">
+  <p><i>Crafted with ❤️ for the Heritage City of Mysuru.</i></p>
+  <img src="https://img.shields.io/badge/Made%20in-Mysuru-blue" alt="Made in Mysuru" />
+</div>
+
