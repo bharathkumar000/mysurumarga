@@ -277,11 +277,11 @@ export const Categories = ({ onSeeAllClick, onCategoryClick, selectedCategory })
     const categories = [
         { icon: LayoutDashboard, label: "Explore", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-50 dark:bg-blue-900/20" },
         { icon: Sparkles, label: "Hidden Gems", color: "text-mysore-600 dark:text-mysore-400", bgColor: "bg-mysore-100 dark:bg-mysore-900/20" },
-        { icon: Palette, label: "Artisans", color: "text-rose-600 dark:text-rose-400", bgColor: "bg-rose-50 dark:bg-rose-900/20" },
-        { icon: Utensils, label: "Food", color: "text-emerald-600 dark:text-emerald-400", bgColor: "bg-emerald-50 dark:bg-emerald-900/20" },
         { icon: Landmark, label: "Heritage", color: "text-amber-700 dark:text-amber-500", bgColor: "bg-amber-100 dark:bg-amber-900/30" },
         { icon: TreePine, label: "Nature", color: "text-green-600 dark:text-green-400", bgColor: "bg-green-50 dark:bg-green-900/20" },
         { icon: Compass, label: "Adventure", color: "text-indigo-600 dark:text-indigo-400", bgColor: "bg-indigo-50 dark:bg-indigo-900/20" },
+        { icon: Palette, label: "Artisans", color: "text-rose-600 dark:text-rose-400", bgColor: "bg-rose-50 dark:bg-rose-900/20" },
+        { icon: Utensils, label: "Food", color: "text-emerald-600 dark:text-emerald-400", bgColor: "bg-emerald-50 dark:bg-emerald-900/20" },
         { icon: Store, label: "Stays", color: "text-purple-600 dark:text-purple-400", bgColor: "bg-purple-50 dark:bg-purple-900/20" },
     ];
 
@@ -479,7 +479,7 @@ export const Explore = ({ places, onCardClick, savedPlaceIds = [], onToggleSave,
 export const FeaturedCard = ({ place, onClick, isSaved, onToggleSave }) => (
     <div
         onClick={() => onClick(place)}
-        className="flex-shrink-0 w-64 md:w-full bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-xl border border-white/20 dark:border-amber-900/30 rounded-[2rem] overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_40px_-10px_rgba(212,175,55,0.2)] scale-100 hover:scale-[1.02] transition-all duration-500 ease-out group cursor-pointer relative"
+        className="flex-shrink-0 w-64 md:w-full bg-[#FDF2D0]/80 dark:bg-amber-950/20 backdrop-blur-xl border border-white/20 dark:border-amber-900/30 rounded-[2rem] overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_40px_-10px_rgba(212,175,55,0.2)] scale-100 hover:scale-[1.02] transition-all duration-500 ease-out group cursor-pointer relative"
         role="button"
         tabIndex={0}
         onKeyDown={(e) => {
@@ -1272,7 +1272,7 @@ export const PlaceCard = ({ image, category, title, description, location, ratin
     return (
         <div
             onClick={onClick}
-            className="group bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-xl border border-white/20 dark:border-amber-900/30 rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(212,175,55,0.15)] transition-all duration-300 cursor-pointer relative"
+            className="group bg-[#FDF2D0]/80 dark:bg-amber-950/20 backdrop-blur-xl border border-white/20 dark:border-amber-900/30 rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(212,175,55,0.15)] transition-all duration-300 cursor-pointer relative"
         >
             {/* Image Container */}
             <div className="relative aspect-[4/3] w-full overflow-hidden">
@@ -1450,28 +1450,28 @@ export const PlaceDetails = ({ place, onBack, isSaved, onToggleSave, userEmail, 
                 <div className="px-8 md:px-12 pt-16 pb-20 space-y-16">
                     {/* Quick Info Grid */}
                     <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-                        <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                        <div className="bg-[#FDF2D0]/80 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <Clock className="w-6 h-6 text-amber-500" />
                             </div>
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Visiting Hours</h4>
                             <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.visitingTime || '10:00 AM - 5:30 PM'}</p>
                         </div>
-                        <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                        <div className="bg-[#FDF2D0]/80 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <IndianRupee className="w-6 h-6 text-emerald-500" />
                             </div>
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Ticket Price</h4>
                             <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.ticketFee || 'Free/Minimal'}</p>
                         </div>
-                        <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                        <div className="bg-[#FDF2D0]/80 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <Calendar className="w-6 h-6 text-blue-500" />
                             </div>
                             <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Best To Visit</h4>
                             <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.bestTimeToVisit || 'September to March'}</p>
                         </div>
-                        <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                        <div className="bg-[#FDF2D0]/80 dark:bg-amber-950/20 p-7 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
                             <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                                 <Sparkles className="w-6 h-6 text-purple-500" />
                             </div>
@@ -3182,20 +3182,32 @@ export const TravaAI = ({ onBack }) => {
         if (q.includes('jaganmohan')) return "Jaganmohan Palace: " + TRAVA_OFFLINE_KNOWLEDGE.pricing.jaganmohan;
         if (q.includes('church') || q.includes('philomena')) return "St. Philomena’s: 2nd largest in Asia. Entry: Free. Open 5AM-6PM.";
         if (q.includes('hill')) return "Chamundi Hills: Best city view, temple, and the massive Nandi bull.";
+        if (q.includes('wax')) return TRAVA_OFFLINE_KNOWLEDGE.museums.wax + " " + TRAVA_OFFLINE_KNOWLEDGE.pricing.wax_museum;
+        if (q.includes('sand museum')) return TRAVA_OFFLINE_KNOWLEDGE.museums.sand + " " + TRAVA_OFFLINE_KNOWLEDGE.pricing.sand_museum;
 
-        // Nature & Quiet
-        if (q.includes('nature') || q.includes('quiet') || q.includes('green') || q.includes('lake') || q.includes('bird') || q.includes('shuka vana') || q.includes('bonsai')) {
-            return `Nature Circuit: ${TRAVA_OFFLINE_KNOWLEDGE.nature.karanji} | ${TRAVA_OFFLINE_KNOWLEDGE.nature.kukkarahalli} | ${TRAVA_OFFLINE_KNOWLEDGE.nature.shuka_vana} | ${TRAVA_OFFLINE_KNOWLEDGE.nature.bonsai}`;
+        // Nature & Lakes
+        if (q.includes('nature') || q.includes('quiet') || q.includes('green') || q.includes('lake') || q.includes('bird')) {
+            return `Nature Circuit: ${TRAVA_OFFLINE_KNOWLEDGE.nature.karanji} | ${TRAVA_OFFLINE_KNOWLEDGE.nature.kukkarahalli} | ${TRAVA_OFFLINE_KNOWLEDGE.nature.shuka_vana} | ${TRAVA_OFFLINE_KNOWLEDGE.nature.lingambudhi}`;
         }
 
         // Hidden Gems / Offbeat
-        if (q.includes('hidden') || q.includes('gem') || q.includes('offbeat') || q.includes('quirky') || q.includes('wax') || q.includes('sand')) {
-            return `Offbeat Hits: ${TRAVA_OFFLINE_KNOWLEDGE.museums.wax} | ${TRAVA_OFFLINE_KNOWLEDGE.museums.sand} | Venugopala Swamy Temple on backwaters (Hosa Kannambadi) is stunning at sunset!`;
+        if (q.includes('hidden') || q.includes('gem') || q.includes('offbeat') || q.includes('quirky')) {
+            return `Offbeat Hits: ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.balmuri} | ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.karighatta} | Venugopala Swamy Temple on KRS backwaters is a must-visit for sunset!`;
         }
 
         // Day Trips
-        if (q.includes('day trip') || q.includes('around') || q.includes('near') || q.includes('100km') || q.includes('somanathapura') || q.includes('bandipur') || q.includes('waterfall')) {
-            return `Day Trips: ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.srirangapatna} | ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.somanathapura} | ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.wildlife} | ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.waterfalls}`;
+        if (q.includes('day trip') || q.includes('around') || q.includes('near') || q.includes('100km')) {
+            return `Day Trips: ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.srirangapatna} | ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.somanathapura} | ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.wildlife} | Falls: ${TRAVA_OFFLINE_KNOWLEDGE.day_trips.waterfalls}`;
+        }
+
+        // Adventure
+        if (q.includes('adventure') || q.includes('trek') || q.includes('sport') || q.includes('waterslide') || q.includes('climb')) {
+            return `Adventure: ${TRAVA_OFFLINE_KNOWLEDGE.adventure.chamundi_trek} | ${TRAVA_OFFLINE_KNOWLEDGE.adventure.varuna} | ${TRAVA_OFFLINE_KNOWLEDGE.adventure.grs} | ${TRAVA_OFFLINE_KNOWLEDGE.adventure.kunti_betta}`;
+        }
+
+        // Stays
+        if (q.includes('stay') || q.includes('hotel') || q.includes('palace hotel') || q.includes('resort')) {
+            return `Heritage Stays: ${TRAVA_OFFLINE_KNOWLEDGE.stays.lalitha_mahal} | ${TRAVA_OFFLINE_KNOWLEDGE.stays.metropole}`;
         }
 
         // Walk
@@ -3203,12 +3215,12 @@ export const TravaAI = ({ onBack }) => {
 
         // Food & Shopping
         if (q.includes('food') || q.includes('eat') || q.includes('dosa') || q.includes('pak') || q.includes('shopping') || q.includes('market') || q.includes('silk') || q.includes('sandalwood')) {
-            return `${TRAVA_OFFLINE_KNOWLEDGE.flavor.market} | Sweets: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.pak} | Eats: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.eats} | Shopping: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.silk}`;
+            return `${TRAVA_OFFLINE_KNOWLEDGE.flavor.market} | Sweets: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.pak} | Eats: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.eats} | Shopping: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.silk} | Artisan: ${TRAVA_OFFLINE_KNOWLEDGE.flavor.sandalwood}`;
         }
 
-        if (q.includes('hello') || q.includes('namaskara')) return "Namaskara! I am Trava AI. Ask me about Royal History, Nature spots, Entry Fees, or hidden gems of Mysuru!";
+        if (q.includes('hello') || q.includes('namaskara')) return "Namaskara! I am Trava AI. Ask me about Royal History, Nature spots, Adventure, Stays, or hidden gems of Mysuru!";
 
-        return "I'm in offline mode. Ask about King Krishnaraja, Brindavan Garden fees, Tiger Safaris, or the Heritage Walk!";
+        return "I'm in offline mode. Ask about King Krishnaraja, Adventure treks, Palace Hotels, or the Heritage Walk!";
     };
 
     const handleTravaMessage = async (msgOverride) => {
@@ -3296,7 +3308,7 @@ Greetings! As your local companion, I've curated a ${days}-day plan for your par
 
     const renderInvite = () => (
         <div className="px-6 md:px-12 pt-12 pb-40 flex flex-col items-center animate-in slide-in-from-bottom-4 duration-700">
-            <div className="w-full max-w-2xl bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-3xl p-8 md:p-12 rounded-[3rem] border border-white/20 dark:border-amber-900/30 shadow-2xl space-y-8 text-center">
+            <div className="w-full max-w-2xl bg-[#FDF2D0]/80 dark:bg-amber-950/20 backdrop-blur-3xl p-8 md:p-12 rounded-[3rem] border border-white/20 dark:border-amber-900/30 shadow-2xl space-y-8 text-center">
                 <div className="mx-auto w-20 h-20 bg-gradient-to-br from-[#D4AF37] to-[#B8962F] rounded-3xl flex items-center justify-center shadow-2xl transform -rotate-6">
                     <Users className="text-black w-10 h-10" />
                 </div>
@@ -3524,7 +3536,7 @@ Greetings! As your local companion, I've curated a ${days}-day plan for your par
             </div>
 
             {/* Add Expense */}
-            <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-xl p-6 md:p-8 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl">
+            <div className="bg-[#FDF2D0]/80 dark:bg-amber-950/20 backdrop-blur-xl p-6 md:p-8 rounded-[2.5rem] border border-white/20 dark:border-amber-900/30 shadow-xl">
                 <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center gap-3">
                         <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/20 rounded-2xl">
@@ -3670,7 +3682,7 @@ Greetings! As your local companion, I've curated a ${days}-day plan for your par
     const renderPlanner = () => (
         <div className="px-8 md:px-12 pt-10 pb-40 space-y-12 animate-in slide-in-from-bottom-4 duration-1000">
             {/* Trip Essentials Card */}
-            <div className="bg-[#FCF8E3]/60 dark:bg-amber-950/20 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white/20 dark:border-amber-900/30 shadow-xl space-y-8">
+            <div className="bg-[#FDF2D0]/80 dark:bg-amber-950/20 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white/20 dark:border-amber-900/30 shadow-xl space-y-8">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-amber-100 dark:bg-[#D4AF37]/10 rounded-2xl shadow-inner">
                         <Compass className="w-6 h-6 text-[#D4AF37]" />
