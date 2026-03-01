@@ -1,0 +1,6236 @@
+﻿import React, { useState, useEffect, useRef, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
+import {
+    Home, Compass, Map as MapIcon, Heart, Sparkles, Palette, Utensils, MapPin, Landmark, TreePine,
+    MessageCircle, X, Send, Loader2, Calendar, Tag, ArrowRight, ArrowLeft, Search, Star,
+    Navigation, Car, Clock, ChevronRight, User, ChevronLeft, Share2, IndianRupee,
+    Check, MessageSquare, Users, BarChart3, LogOut, Shield, Inbox, Handshake,
+    TrendingUp, Settings, Bell, Lock, Globe, Database, ExternalLink, Download,
+    Trash2, RefreshCcw, Eye, EyeOff, Mail, Phone, HelpCircle, Info, Moon, FileText,
+    LayoutDashboard, Store, Camera, Plus, Ticket, History, ArrowRightCircle, MessageSquareQuote, Bike
+} from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png';
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+import { createClient } from '@supabase/supabase-js';
+
+// --- SUPABASE CLIENT ---
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+    console.warn('Supabase credentials not configured. Check your .env file.');
+}
+
+export const supabase = (supabaseUrl && supabaseAnonKey)
+    ? createClient(supabaseUrl, supabaseAnonKey)
+    : null;
+
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+// Initialize Gemini
+const geminiApiKey = import.meta.env.VITE_GEMINI_API_KEY || "AIzaSyBWchuIcpM92mKBushI79JVPhe4A7EQtA4";
+const genAI = new GoogleGenerativeAI(geminiApiKey);
+
+export const LanguageSelector = () => {
+    const { i18n } = useTranslation();
+
+    return (
+        <select
+            className="w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white text-sm rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/50 appearance-none font-bold cursor-pointer transition-all"
+            value={i18n.language}
+            onChange={(e) => i18n.changeLanguage(e.target.value)}
+        >
+            <option value="en">English (Global)</option>
+            <option value="hi">हिंदी (Hindi)</option>
+            <option value="kn">ಕನ್ನಡ (Kannada)</option>
+        </select>
+    );
+};
+
+export const ChatBot = () => {
+    const [isOpen, setIsOpen] = useState(false);
+    const [messages, setMessages] = useState([
+        {
+            role: 'assistant',
+            content: "Greetings, traveler! I am your Heritage Guide to the City of Palaces. Pranam! How may I assist your exploration of Mysuru today?"
+        }
+    ]);
+    const [inputMessage, setInputMessage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
+    const messagesEndRef = useRef(null);
+    const inputRef = useRef(null);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    useEffect(() => {
+        scrollToBottom();
+    }, [messages]);
+
+    useEffect(() => {
+        if (isOpen && inputRef.current) {
+            inputRef.current.focus();
+        }
+    }, [isOpen]);
+
+    const sendMessage = async () => {
+        if (!inputMessage.trim() || isLoading) return;
+
+        const userMessage = inputMessage.trim();
+        setInputMessage('');
+
+        setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+        setIsLoading(true);
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `You are a Heritage Guide to the City of Palaces, Mysuru (Mysore). Answer in a royal, polite, and helpful tone. Keep responses somewhat brief. User query: ${userMessage}`;
+            const result = await model.generateContent(prompt);
+            const responseText = result.response.text();
+            setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+        } catch (error) {
+            console.error("Gemini AI error:", error);
+            setMessages(prev => [...prev, { role: 'assistant', content: "My apologies, traveler. The royal archives are currently inaccessible. Please try again." }]);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleKey = (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage();
+        }
+    };
+
+    return (
+        <div className="fixed bottom-24 right-6 md:bottom-8 md:right-8 z-[1000] font-sans">
+            {!isOpen ? (
+                <button
+                    onClick={() => setIsOpen(true)}
+                    className="w-16 h-16 bg-gradient-to-br from-[#D4AF37] via-[#B8941F] to-[#8A6D14] text-black rounded-full shadow-[0_10px_30px_rgba(212,175,55,0.4)] hover:scale-110 active:scale-95 transition-all duration-300 flex items-center justify-center group border-2 border-white/20"
+                >
+                    <div className="relative">
+                        <MessageSquare className="w-7 h-7 group-hover:rotate-12 transition-transform" />
+                        <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 border border-white"></span>
+                        </span>
+                    </div>
+                </button>
+            ) : (
+                <div className="w-[350px] sm:w-[380px] h-[550px] bg-[#111827] rounded-[2.5rem] shadow-[0_25px_60px_-15px_rgba(0,0,0,0.6)] flex flex-col overflow-hidden border border-[#D4AF37]/30 border-b-8 border-b-[#D4AF37] animate-in slide-in-from-bottom-6 transition-all">
+                    {/* Royal Header */}
+                    <div className="p-6 bg-gradient-to-r from-[#111827] to-[#1f2937] flex items-center justify-between border-b border-[#D4AF37]/20">
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-2xl bg-[#D4AF37] flex items-center justify-center p-2.5 shadow-[0_0_15px_rgba(212,175,55,0.3)]">
+                                <Compass className="w-full h-full text-[#111827]" />
+                            </div>
+                            <div>
+                                <h3 className="text-[#D4AF37] font-serif text-lg leading-none mb-1">Heritage Guide</h3>
+                                <p className="text-gray-400 text-[10px] uppercase font-bold tracking-widest">Sovereign Edition</p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={() => setIsOpen(false)}
+                            className="bg-white/5 hover:bg-white/10 p-2 rounded-xl transition-all"
+                        >
+                            <X className="w-5 h-5 text-gray-400" />
+                        </button>
+                    </div>
+
+                    {/* Royal Conversations */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar bg-[url('https://www.transparenttextures.com/patterns/black-paper.png')]">
+                        {messages.map((m, idx) => (
+                            <div key={idx} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in duration-500`}>
+                                <div className={`relative px-4 py-3 rounded-2xl text-sm leading-relaxed max-w-[85%] shadow-xl whitespace-pre-wrap ${m.role === 'user'
+                                    ? 'bg-[#D4AF37] text-[#111827] rounded-tr-none font-bold'
+                                    : 'bg-white/5 text-gray-200 border border-[#D4AF37]/20 rounded-tl-none font-medium backdrop-blur-md'
+                                    }`}>
+                                    {m.content}
+                                    {m.role === 'assistant' && (
+                                        <div className="absolute -left-2 -top-2 w-5 h-5 bg-[#D4AF37] rounded-full flex items-center justify-center shadow-lg border-2 border-[#111827]">
+                                            <Sparkles className="w-2.5 h-2.5 text-[#111827]" />
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        ))}
+                        {isLoading && (
+                            <div className="flex justify-start">
+                                <div className="bg-white/5 border border-[#D4AF37]/20 rounded-2xl px-5 py-3 rounded-tl-none flex items-center gap-3">
+                                    <div className="flex gap-1">
+                                        <span className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-bounce [animation-delay:-0.3s]"></span>
+                                        <span className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-bounce [animation-delay:-0.15s]"></span>
+                                        <span className="w-1.5 h-1.5 bg-[#D4AF37] rounded-full animate-bounce"></span>
+                                    </div>
+                                    <span className="text-[10px] italic text-[#D4AF37] font-serif">Consulting chronicles...</span>
+                                </div>
+                            </div>
+                        )}
+                        <div ref={messagesEndRef} />
+                    </div>
+
+                    {/* Royal Input */}
+                    <div className="p-6 bg-[#111827] border-t border-[#D4AF37]/10">
+                        <div className="relative group">
+                            <textarea
+                                ref={inputRef}
+                                value={inputMessage}
+                                onChange={(e) => setInputMessage(e.target.value)}
+                                onKeyDown={handleKey}
+                                placeholder="Consult the Guide..."
+                                rows="1"
+                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 pr-14 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 transition-all resize-none custom-scrollbar"
+                            />
+                            <button
+                                onClick={sendMessage}
+                                disabled={!inputMessage.trim() || isLoading}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 w-10 h-10 bg-[#D4AF37] hover:scale-110 active:scale-95 text-[#111827] rounded-xl flex items-center justify-center transition-all disabled:opacity-50 disabled:scale-100 shadow-[0_0_15px_rgba(212,175,55,0.2)]"
+                            >
+                                <Send className="w-5 h-5" />
+                            </button>
+                        </div>
+                        <p className="text-[9px] text-gray-500 mt-3 text-center uppercase tracking-widest font-bold">
+                            Royal Heritage Intelligence
+                        </p>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export const BottomNavItem = ({ icon: _Icon, label, active, onClick }) => {
+    return (
+        <button
+            onClick={onClick}
+            className={`flex flex-col items-center justify-center w-full h-full space-y-1 transition-all duration-200 ${active ? 'text-mysore-700 scale-110' : 'text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300'}`}
+        >
+            <_Icon className={`w-6 h-6 ${active ? 'fill-current' : ''}`} />
+            <span className="text-[10px] font-bold">{label}</span>
+            {active && <div className="w-1 h-1 bg-mysore-600 rounded-full absolute bottom-2"></div>}
+        </button>
+    );
+};
+
+export const BottomNav = ({ activeTab, setActiveTab }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="w-full bg-white/80 dark:bg-gray-950/80 backdrop-blur-2xl border-t border-white/20 dark:border-gray-800 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] h-24 pb-8 md:pb-2 z-50 shrink-0 transition-colors duration-200 rounded-t-[2.5rem]">
+            <div className="flex justify-around items-center h-full px-4">
+                <BottomNavItem
+                    icon={Home}
+                    label={t('home')}
+                    active={activeTab === 'home'}
+                    onClick={() => setActiveTab('home')}
+                />
+                <BottomNavItem
+                    icon={Compass}
+                    label={t('explore')}
+                    active={activeTab === 'explore'}
+                    onClick={() => setActiveTab('explore')}
+                />
+                <BottomNavItem
+                    icon={MapIcon}
+                    label={t('map')}
+                    active={activeTab === 'map'}
+                    onClick={() => setActiveTab('map')}
+                />
+                <BottomNavItem
+                    icon={Heart}
+                    label={t('saved')}
+                    active={activeTab === 'saved'}
+                    onClick={() => setActiveTab('saved')}
+                />
+                <BottomNavItem
+                    icon={Sparkles}
+                    label="Planner"
+                    active={activeTab === 'planner'}
+                    onClick={() => setActiveTab('planner')}
+                />
+
+            </div>
+        </div>
+    );
+};
+
+
+export const CategoryItem = ({ icon: _Icon, label, color, bgColor, onClick, isSelected }) => (
+    <div
+        onClick={() => onClick && onClick(label)}
+        className="flex flex-col items-center gap-3 min-w-[80px] group cursor-pointer"
+    >
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center shadow-sm transition-all duration-300 group-hover:scale-110 group-hover:shadow-md ${isSelected ? 'bg-[#D4AF37] ring-4 ring-[#D4AF37]/30 shadow-lg scale-110' : bgColor}`}>
+            <_Icon className={`w-7 h-7 ${isSelected ? 'text-white' : color}`} />
+        </div>
+        <span className={`text-[11px] font-bold text-center tracking-tight transition-colors ${isSelected ? 'text-[#D4AF37]' : 'text-gray-600 dark:text-gray-400 group-hover:text-gray-900 dark:group-hover:text-white'}`}>{label}</span>
+    </div>
+);
+
+export const Categories = ({ onSeeAllClick, onCategoryClick, selectedCategory }) => {
+    const categories = [
+        { icon: LayoutDashboard, label: "Explore", color: "text-blue-600 dark:text-blue-400", bgColor: "bg-blue-50 dark:bg-blue-900/20" },
+        { icon: Sparkles, label: "Hidden Gems", color: "text-mysore-600 dark:text-mysore-400", bgColor: "bg-mysore-100 dark:bg-mysore-900/20" },
+        { icon: Palette, label: "Artisans", color: "text-rose-600 dark:text-rose-400", bgColor: "bg-rose-50 dark:bg-rose-900/20" },
+        { icon: Utensils, label: "Food", color: "text-emerald-600 dark:text-emerald-400", bgColor: "bg-emerald-50 dark:bg-emerald-900/20" },
+        { icon: Landmark, label: "Heritage", color: "text-amber-700 dark:text-amber-500", bgColor: "bg-amber-100 dark:bg-amber-900/30" },
+        { icon: TreePine, label: "Nature", color: "text-green-600 dark:text-green-400", bgColor: "bg-green-50 dark:bg-green-900/20" },
+        { icon: Compass, label: "Adventure", color: "text-indigo-600 dark:text-indigo-400", bgColor: "bg-indigo-50 dark:bg-indigo-900/20" },
+        { icon: Store, label: "Stays", color: "text-purple-600 dark:text-purple-400", bgColor: "bg-purple-50 dark:bg-purple-900/20" },
+    ];
+
+    return (
+        <div className="py-6 transition-colors duration-200">
+            <div className="flex justify-between items-center px-8 md:px-12 mb-4">
+                <h3 className="text-xl font-black text-gray-900 dark:text-white tracking-tight">Browse Categories</h3>
+                <button
+                    onClick={onSeeAllClick}
+                    className="text-mysore-700 text-xs font-bold hover:text-mysore-800 dark:hover:text-mysore-300 uppercase tracking-widest px-3 py-1 bg-mysore-100 dark:bg-mysore-900/30 rounded-full transition-colors"
+                >
+                    View All
+                </button>
+            </div>
+
+            <div className="flex overflow-x-auto gap-4 px-8 pb-4 custom-scrollbar snap-x md:flex md:flex-wrap md:justify-around md:px-12 md:pb-0 md:overflow-visible md:gap-8">
+                {categories.map((cat, index) => (
+                    <CategoryItem key={index} {...cat} onClick={onCategoryClick} isSelected={selectedCategory === cat.label} />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
+export const EventCard = ({ event }) => (
+    <div className="flex-shrink-0 w-72 bg-white dark:bg-gray-800 rounded-2xl overflow-hidden shadow-lg border border-gray-100 dark:border-gray-700 hover:shadow-2xl transition-all duration-300 group cursor-pointer">
+        <div className="relative h-40 w-full overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
+            <img
+                src={event.image || `https://images.unsplash.com/photo-1590740608759-6799516ca4d0?auto=format&fit=crop&q=80&w=400`}
+                alt={event.title}
+                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            />
+            <div className="absolute top-4 left-4 z-20">
+                <span className="px-3 py-1 bg-[#D4AF37] text-black text-[9px] font-black uppercase tracking-widest rounded-lg shadow-lg">
+                    {event.event_type || event.type}
+                </span>
+            </div>
+            <div className="absolute bottom-4 left-4 right-4 z-20">
+                <h4 className="text-white font-serif text-lg leading-tight line-clamp-1 group-hover:text-[#D4AF37] transition-colors">
+                    {event.title}
+                </h4>
+            </div>
+        </div>
+        <div className="p-5 space-y-4">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
+                <div className="flex items-center gap-2">
+                    <Calendar size={14} className="text-[#D4AF37]" />
+                    <span>{new Date(event.event_date || event.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                    <Tag size={14} className="text-emerald-500" />
+                    <span className="text-emerald-600 dark:text-emerald-400">{event.price || 'Free'}</span>
+                </div>
+            </div>
+
+            <p className="text-xs text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                {event.description}
+            </p>
+
+            <div className="pt-2 flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">
+                    <MapPin size={14} />
+                    <span className="truncate max-w-[120px]">{event.spot_name}</span>
+                </div>
+                <button className="p-2 bg-gray-50 dark:bg-gray-700 rounded-xl group-hover:bg-[#D4AF37] group-hover:text-black transition-all">
+                    <ArrowRight size={14} />
+                </button>
+            </div>
+        </div>
+    </div>
+);
+
+export const EventsSection = ({ events = [] }) => {
+    if (events.length === 0) return null;
+
+    return (
+        <div className="py-8 animate-in fade-in slide-in-from-bottom-6 duration-700">
+            <div className="flex justify-between items-center px-8 md:px-12 mb-6">
+                <div>
+                    <h3 className="text-2xl font-serif text-gray-900 dark:text-white">Upcoming Events</h3>
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] mt-1">Heritage festivals & workshops</p>
+                </div>
+                <button className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-[#D4AF37] transition-colors">
+                    View All
+                </button>
+            </div>
+
+            <div className="flex space-x-5 overflow-x-auto px-8 md:px-12 pb-6 custom-scrollbar scroll-smooth">
+                {events.map((event, index) => (
+                    <EventCard key={event.id || index} event={event} />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
+export const Explore = ({ places, onCardClick, savedPlaceIds = [], onToggleSave, selectedCategory, onCategoryClick }) => {
+    const [searchQuery, setSearchQuery] = useState('');
+
+    const featuredIds = featuredPlaces.map(p => p.id);
+
+    const filteredPlaces = places.filter(place => {
+        // Exclude featured spots from Explore page
+        if (featuredIds.includes(place.id)) return false;
+
+        // Only show Hidden Gems if specifically selected
+        const isHiddenGem = place.category === 'Hidden Gem';
+        if (isHiddenGem && selectedCategory !== 'Hidden Gems') return false;
+        if (!isHiddenGem && selectedCategory === 'Hidden Gems') return false;
+
+        const matchesSearch = place.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            place.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            place.description.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesCategory = !selectedCategory || selectedCategory === 'Explore' ||
+            place.category.toLowerCase().includes(selectedCategory.toLowerCase()) ||
+            (selectedCategory === 'Hidden Gems' && place.category === 'Hidden Gem');
+
+        // Only show "famous" places (rating >= 4.5) for general browse
+        // Bypass this for Hidden Gems category
+        const isFamous = selectedCategory === 'Hidden Gems' || place.rating >= 4.5;
+
+        return matchesSearch && matchesCategory && isFamous;
+    });
+
+    return (
+        <div className="pb-32 bg-transparent min-h-screen">
+            <div className="sticky top-[80px] md:top-[88px] bg-transparent z-30 px-6 md:px-12 py-4 md:py-6 transition-all">
+                <div className="relative w-full">
+                    <Search className="absolute left-5 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                    <input
+                        type="text"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Search heritage, nature, food..."
+                        className="w-full bg-gray-50 dark:bg-gray-900 rounded-[1.5rem] py-3.5 md:py-4 pl-14 pr-6 text-sm font-medium dark:text-gray-200 focus:outline-none focus:ring-4 focus:ring-[#D4AF37]/10 transition-all placeholder-gray-400"
+                    />
+                </div>
+
+                {/* Categories Bar Container - Sticks below search */}
+                <div className="bg-[#f3e3ad]/40 dark:bg-black/40 backdrop-blur-xl border-b border-[#D4AF37]/5 px-0 md:px-6">
+                    <div className="max-w-7xl mx-auto">
+                        <Categories onCategoryClick={onCategoryClick} selectedCategory={selectedCategory} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex-1 px-6 md:px-12 py-10 max-w-7xl mx-auto w-full">
+                <div className="flex items-center justify-between mb-8">
+                    <div className="flex flex-col gap-1">
+                        <h3 className="text-3xl font-serif text-gray-900 dark:text-white">
+                            {selectedCategory && selectedCategory !== 'Explore' ? selectedCategory : 'All Experiences'}
+                        </h3>
+                        {searchQuery && (
+                            <p className="text-xs text-gray-400 font-medium">Showing results for "{searchQuery}"</p>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">
+                        <Compass size={14} />
+                        <span>Discovering Mysuru</span>
+                    </div>
+                </div>
+
+                {filteredPlaces.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+                        {filteredPlaces.map(place => (
+                            <PlaceCard
+                                key={place.id}
+                                {...place}
+                                onClick={() => onCardClick(place)}
+                                isSaved={savedPlaceIds.includes(place.id)}
+                                onToggleSave={(e) => onToggleSave(e, place.id)}
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-center py-32 bg-gray-50 dark:bg-gray-900 rounded-[3rem] border border-dashed border-gray-200 dark:border-gray-800">
+                        <Search size={48} className="mx-auto text-gray-300 mb-6" />
+                        <p className="text-gray-500 dark:text-gray-400 font-bold uppercase tracking-widest text-xs">
+                            No heritage found matching "{searchQuery}"
+                        </p>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export const FeaturedCard = ({ place, onClick, isSaved, onToggleSave }) => (
+    <div
+        onClick={() => onClick(place)}
+        className="flex-shrink-0 w-64 md:w-full bg-white/10 dark:bg-black/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-[2rem] overflow-hidden shadow-[0_10px_40px_-10px_rgba(0,0,0,0.08)] hover:shadow-[0_10px_40px_-10px_rgba(212,175,55,0.2)] scale-100 hover:scale-[1.02] transition-all duration-500 ease-out group cursor-pointer relative"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onClick(place);
+            }
+        }}
+    >
+        {/* Floating Category Badge */}
+        <div className="absolute top-4 left-4 z-20">
+            <div className="bg-white/90 dark:bg-black/90 backdrop-blur-md px-3 py-1.5 rounded-full shadow-lg border border-gray-100 dark:border-gray-800">
+                <span className={`text-[10px] font-black uppercase tracking-widest ${place.categoryColor?.replace('bg-', 'text-') || 'text-amber-600'}`}>
+                    {place.category}
+                </span>
+            </div>
+        </div>
+
+        {/* Image Container */}
+        <div className="relative h-64 w-full overflow-hidden">
+            <div className="absolute inset-0 bg-gray-900 animate-pulse -z-10" />
+            <img
+                src={place.image}
+                alt={place.title}
+                className="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700 ease-out"
+            />
+            <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-90 transition-opacity duration-300 group-hover:opacity-100" />
+
+            {/* Save Button */}
+            <button
+                onClick={(e) => onToggleSave(e, place.id)}
+                className="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/30 flex items-center justify-center shadow-lg hover:bg-white hover:scale-110 transition-all duration-300 z-20 group/heart"
+            >
+                <Heart className={`w-4 h-4 transition-colors ${isSaved ? 'text-red-500 fill-current' : 'text-white group-hover/heart:text-red-500'}`} />
+            </button>
+        </div>
+
+        {/* Content Overlay - Now floating over the bottom of the image for a more immersive look */}
+        <div className="absolute bottom-0 inset-x-0 p-6 text-white transform transition-transform duration-500">
+            <div className="flex items-center gap-2 mb-2 opacity-0 -translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-500 delay-100">
+                <div className="flex items-center gap-1 bg-[#D4AF37] text-black px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide">
+                    <Star size={10} className="fill-black" />
+                    {place.rating}
+                </div>
+                <div className="flex items-center gap-1 text-gray-300 text-[10px] font-medium tracking-wide">
+                    <MapPin size={10} />
+                    {place.location}
+                </div>
+            </div>
+
+            <h4 className="font-serif text-2xl leading-none mb-2 drop-shadow-md group-hover:text-[#D4AF37] transition-colors duration-300">
+                {place.title}
+            </h4>
+
+            <p className="text-gray-300 text-xs line-clamp-2 leading-relaxed opacity-80 group-hover:opacity-100 transition-opacity">
+                {place.description}
+            </p>
+        </div>
+    </div>
+);
+
+export const FeaturedSection = ({ places = [], onCardClick, savedPlaceIds = [], onToggleSave, onSeeAllClick }) => {
+    // Show all available places in the featured grid
+    const displayPlaces = places.length > 0 ? places : featuredPlaces;
+
+    return (
+        <div className="py-8 transition-colors duration-200">
+            <div className="flex justify-between items-end px-8 md:px-12 mb-8">
+                <div>
+                    <span className="text-[#D4AF37] font-black text-xs uppercase tracking-[0.3em] mb-2 block">Curated Collection</span>
+                    <h3 className="text-3xl md:text-5xl font-serif text-gray-900 dark:text-white leading-none">Featured Spots</h3>
+                </div>
+                <button
+                    onClick={onSeeAllClick}
+                    className="hidden md:flex items-center gap-2 text-sm font-bold text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+                >
+                    See All Collection <MapPin size={14} />
+                </button>
+            </div>
+
+            {/* Responsive Container: Horizontal Scroll on Mobile, Grid on Desktop */}
+            <div className="flex space-x-6 overflow-x-auto px-8 pb-8 md:px-12 md:pb-0 md:space-x-0 md:grid md:grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 md:gap-8 custom-scrollbar md:overflow-visible snap-x">
+                {displayPlaces.map((place, index) => (
+                    <div
+                        key={place.id}
+                        className="animate-in fade-in slide-in-from-bottom-8 duration-700 fill-mode-backwards"
+                        style={{ animationDelay: `${index * 100}ms` }}
+                    >
+                        <FeaturedCard
+                            place={place}
+                            onClick={onCardClick}
+                            isSaved={savedPlaceIds.includes(place.id)}
+                            onToggleSave={onToggleSave}
+                        />
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
+export const FeedbackSection = ({ userEmail, onSuccess }) => {
+    const [rating, setRating] = useState(5);
+    const [comment, setComment] = useState('');
+    const [submitted, setSubmitted] = useState(false);
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+
+        try {
+            // Use local supabase instance
+
+            if (supabase) {
+                const feedbackData = {
+                    user_email: userEmail || 'Anonymous',
+                    comment: comment,
+                    created_at: new Date().toISOString()
+                };
+
+                // Determine which table to use
+                if (window.location.href.includes('admin') || !onSuccess) {
+                    // Admin/General Feedback
+                    const { error } = await supabase
+                        .from('admin_feedback')
+                        .insert([{ ...feedbackData, subject: 'General' }]);
+                    if (error) throw error;
+                } else {
+                    // Partner/Spot Feedback (assuming we are on a place details view)
+                    const { error } = await supabase
+                        .from('partner_feedback')
+                        .insert([{
+                            ...feedbackData,
+                            rating: rating,
+                            spot_name: document.querySelector('h1')?.innerText || 'Unknown Spot'
+                        }]);
+                    if (error) throw error;
+                }
+            }
+
+            // Fallback to local storage for instant UI update
+            const feedback = {
+                id: Date.now(),
+                userEmail,
+                rating,
+                comment,
+                timestamp: new Date().toISOString()
+            };
+
+            const isSiteFeedback = window.location.href.includes('admin') || !onSuccess;
+            const storageKey = isSiteFeedback ? 'admin_feedback_local' : 'partner_feedback_local';
+            const existingFeedback = JSON.parse(localStorage.getItem(storageKey) || '[]');
+            localStorage.setItem(storageKey, JSON.stringify([feedback, ...existingFeedback]));
+
+            setSubmitted(true);
+            setComment('');
+            if (onSuccess) onSuccess();
+            setTimeout(() => setSubmitted(false), 3000);
+        } catch (err) {
+            console.error("Feedback error:", err);
+            // Error is handled by console or parent
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
+
+    return (
+        <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl rounded-3xl p-6 border border-gray-100 dark:border-gray-700 shadow-xl">
+            <div className="flex items-center gap-3 mb-6">
+                <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-2xl">
+                    <MessageSquare className="h-5 w-5 text-amber-600" />
+                </div>
+                <div>
+                    <h3 className="text-xl font-serif text-gray-900 dark:text-white">Share Your Feedback</h3>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Help us preserve Mysuru's spirit</p>
+                </div>
+            </div>
+
+            {submitted ? (
+                <div className="py-8 text-center animate-in fade-in zoom-in duration-500">
+                    <div className="w-12 h-12 bg-emerald-100 dark:bg-emerald-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <Send className="h-6 w-6 text-emerald-600" />
+                    </div>
+                    <p className="text-sm font-bold text-emerald-600 uppercase tracking-widest">Feedback Received!</p>
+                </div>
+            ) : (
+                <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="flex gap-2">
+                        {[1, 2, 3, 4, 5].map((num) => (
+                            <button
+                                key={num}
+                                type="button"
+                                onClick={() => setRating(num)}
+                                className={`p-2 transition-all ${rating >= num ? 'text-amber-500 scale-110' : 'text-gray-300 dark:text-gray-600'}`}
+                            >
+                                <Star fill={rating >= num ? 'currentColor' : 'none'} size={24} />
+                            </button>
+                        ))}
+                    </div>
+
+                    <textarea
+                        id="feedback-comment"
+                        name="comment"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        placeholder="Tell us about your experience..."
+                        required
+                        className="w-full h-32 bg-gray-50 dark:bg-gray-900/50 border border-gray-200 dark:border-gray-800 rounded-2xl p-4 text-sm text-gray-900 dark:text-white focus:ring-2 focus:ring-amber-500 outline-none transition-all resize-none"
+                    />
+
+                    <button
+                        type="submit"
+                        disabled={isSubmitting}
+                        className={`w-full py-4 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-lg hover:scale-[1.02] active:scale-95 transition-all ${isSubmitting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isSubmitting ? 'Sending Heritage Echo...' : 'Submit Feedback'}
+                    </button>
+                </form>
+            )}
+        </div>
+    );
+};
+
+
+export const Hero = ({ onExploreClick }) => {
+    return (
+        <div className="px-8 pt-8 pb-4 space-y-8 md:px-12 md:pt-12 md:pb-12">
+            {/* Modern Search Bar */}
+            <div className="relative group z-30 md:max-w-2xl md:mx-auto transform hover:-translate-y-1 transition-transform duration-300">
+                <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                    <Search className="h-5 w-5 text-gray-400 group-focus-within:text-[#D4AF37] transition-colors" />
+                </div>
+                <input
+                    type="text"
+                    id="search-input"
+                    name="search"
+                    className="block w-full pl-14 pr-32 py-5 border-none rounded-[2rem] leading-5 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-4 focus:ring-[#D4AF37]/10 shadow-[0_8px_30px_rgb(0,0,0,0.08)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.4)] transition-all font-medium text-sm md:text-base"
+                    placeholder="Search for hidden gems, culture, food..."
+                    autoComplete="off"
+                />
+                <div className="absolute inset-y-2 right-2 flex items-center">
+                    <button className="px-5 py-2.5 bg-black dark:bg-[#D4AF37] rounded-[1.5rem] text-white dark:text-black font-bold text-xs uppercase tracking-wider hover:scale-105 active:scale-95 transition-all shadow-lg shadow-black/20 dark:shadow-[#D4AF37]/20">
+                        Filter
+                    </button>
+                </div>
+            </div>
+
+            {/* Immersive Hero Card */}
+            <div
+                className="relative w-full h-[26rem] md:h-[36rem] rounded-[2.5rem] overflow-hidden shadow-[0_20px_50px_-12px_rgba(0,0,0,0.3)] group cursor-pointer"
+                onClick={onExploreClick}
+            >
+                <div className="absolute inset-0 bg-gray-900 animate-pulse" /> {/* Loading state placeholder */}
+                <img
+                    src="/src/assets/mysore-palace-daytime.jpg"
+                    alt="Mysore Palace"
+                    className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-[1.5s] ease-out"
+                />
+
+                {/* Gradient Overlays */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/40 via-transparent to-black/60 opacity-80" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
+
+                {/* Top Badge */}
+                <div className="absolute top-8 left-8">
+                    <div className="flex items-center space-x-2 bg-white/10 backdrop-blur-xl border border-white/20 px-4 py-2 rounded-full shadow-2xl">
+                        <div className="w-2 h-2 rounded-full bg-[#D4AF37] animate-pulse shadow-[0_0_10px_#D4AF37]" />
+                        <span className="text-white font-bold text-[10px] tracking-[0.2em] uppercase">Featured Destination</span>
+                    </div>
+                </div>
+
+                {/* Main Content */}
+                <div className="absolute bottom-10 left-8 right-8 md:left-12 md:bottom-12 max-w-2xl">
+                    <div className="space-y-4 transform group-hover:-translate-y-2 transition-transform duration-500">
+                        <div className="flex items-center gap-3 animate-in fade-in slide-in-from-bottom-4 duration-700 delay-100">
+                            <div className="bg-[#D4AF37] p-1.5 rounded-lg shadow-[0_0_20px_rgba(212,175,55,0.4)]">
+                                <Compass className="w-4 h-4 text-black" />
+                            </div>
+                            <span className="text-[#D4AF37] text-xs font-black uppercase tracking-[0.3em] drop-shadow-md">Beyond the Palace</span>
+                        </div>
+
+                        <h2 className="text-5xl md:text-7xl font-serif text-white leading-[0.9] tracking-tight drop-shadow-2xl animate-in fade-in slide-in-from-bottom-6 duration-700 delay-200">
+                            Discover the <br />
+                            <span className="italic relative inline-block">
+                                Soul of Mysuru
+                            </span>
+
+                        </h2>
+
+                        <p className="text-gray-200 text-sm md:text-lg font-medium leading-relaxed max-w-lg drop-shadow-md animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                            Uncover hidden gems, local artisans & authentic experiences that usually go unnoticed by the casual eye.
+                        </p>
+                    </div>
+
+                    {/* Explore Button */}
+                    <div className="mt-8 pt-8 border-t border-white/10 flex items-center gap-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-500">
+                        <button
+                            className="group/btn relative overflow-hidden bg-white text-black px-8 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all duration-300 hover:scale-105 active:scale-95 shadow-[0_10px_30px_rgba(255,255,255,0.2)]"
+                        >
+                            <span className="relative z-10">
+                                Start Exploring
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+export const Loader = ({ onFinish }) => {
+    const [isVisible, setIsVisible] = useState(true);
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            setIsVisible(false);
+            if (onFinish) onFinish();
+        }, 4500); // 4.5 seconds to appreciate the premium animation
+
+        return () => clearTimeout(timer);
+    }, [onFinish]);
+
+    if (!isVisible) return null;
+
+    return (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center mysore-main-bg flex-col overflow-hidden transition-opacity duration-1000">
+            <div className="relative flex flex-col items-center">
+
+                {/* Logo Text */}
+                <div className="flex items-baseline space-x-3 z-10 scale-110 sm:scale-125">
+                    <h1 className="text-5xl font-serif text-black tracking-tight opacity-0 animate-fade-in-up"
+                        style={{ fontFamily: "'Playfair Display', serif" }}>
+                        Mysuru
+                    </h1>
+                    <h1 className="text-5xl font-bold text-[#D4AF37] tracking-tight opacity-0 animate-fade-in-up-delay">
+                        marga
+                    </h1>
+                </div>
+
+
+                {/* Progress bar or subtle indicator */}
+                <div className="mt-20 w-40 h-[1.5px] bg-gray-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-[#D4AF37] animate-loading-progress shadow-[0_0_10px_#D4AF37]"></div>
+                </div>
+
+                <p className="mt-4 text-[10px] uppercase tracking-[0.3em] text-gray-400 opacity-0 animate-fade-in-slow">
+                    Exploring Hidden Treasures
+                </p>
+            </div>
+
+        </div>
+    );
+};
+
+
+// Fix for default marker icons
+
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+    iconUrl: markerIcon,
+    iconRetinaUrl: markerIcon2x,
+    shadowUrl: markerShadow,
+});
+
+export const ChangeView = ({ center, zoom }) => {
+    const map = useMap();
+    useEffect(() => {
+        if (center) {
+            map.setView(center, zoom || 15, { animate: true });
+        }
+    }, [center, zoom, map]);
+    return null;
+};
+
+export const MapComponent = ({ places, destination, interactive = true }) => {
+    const defaultCenter = [12.3051, 76.6551]; // Mysuru Palace Area
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState('All');
+    const [activePlace, setActivePlace] = useState(destination || null);
+    const [showBookingPanel, setShowBookingPanel] = useState(false);
+    const [bookingStage, setBookingStage] = useState('select'); // 'select', 'confirm', 'success'
+    const [selectedCab, setSelectedCab] = useState(null);
+    const [showSuggestions, setShowSuggestions] = useState(false);
+
+    const categories = ['All', 'Nature', 'Heritage', 'Food', 'Artisan', 'Stay'];
+
+    const filteredPlaces = (places || []).filter(place => {
+        const matchesSearch = place.title.toLowerCase().includes(searchQuery.toLowerCase());
+        const matchesCategory = selectedCategory === 'All' || place.category === selectedCategory;
+        return matchesSearch && matchesCategory;
+    });
+
+    const suggestions = searchQuery.length > 1
+        ? (places || []).filter(p => p.title.toLowerCase().includes(searchQuery.toLowerCase())).slice(0, 5)
+        : [];
+
+    const handlePlaceSelect = (place) => {
+        setActivePlace(place);
+        setSearchQuery(place.title);
+        setShowSuggestions(false);
+        setShowBookingPanel(false);
+        setBookingStage('select');
+        setSelectedCab(null);
+    };
+
+    const cabOptions = [
+        { id: 'bike', type: 'Bike / Two-Wheeler', price: '?42', time: '2 min', icon: '', description: 'Fastest in traffic' },
+        { id: 'auto', type: 'Auto Rickshaw', price: '?68', time: '3 min', icon: '', description: 'Affordable for 3' },
+        { id: 'mini', type: 'Cab Mini', price: '?142', time: '5 min', icon: '', description: 'Compact AC cars' },
+        { id: 'prime', type: 'Cab Prime', price: '?198', time: '6 min', icon: '', description: 'Premium sedans' },
+    ];
+
+    const handleBookNow = (cab) => {
+        setSelectedCab(cab);
+        setBookingStage('confirm');
+    };
+
+    const confirmBooking = () => {
+        setBookingStage('success');
+        setTimeout(() => {
+            setShowBookingPanel(false);
+            setBookingStage('select');
+        }, 3000);
+    };
+
+    const center = activePlace?.coords || defaultCenter;
+    const zoom = activePlace ? 16 : 13;
+
+    return (
+        <div className="w-full relative overflow-hidden bg-gray-100" style={{ height: 'calc(100vh - 100px)' }}>
+            {/* Search Bar Overlay - Only if Interactive */}
+            {interactive && (
+                <div className={`absolute top-4 left-4 right-4 z-[1000] space-y-3 transition-all duration-500 ${showBookingPanel ? '-translate-y-24 opacity-0' : 'translate-y-0 opacity-100'}`}>
+                    <div className="relative group">
+                        <div className="absolute inset-0 bg-white/20 blur-xl opacity-0 group-focus-within:opacity-100 transition-opacity rounded-full"></div>
+                        <div className="relative flex items-center bg-white dark:bg-gray-800 shadow-2xl rounded-2xl border border-gray-100 dark:border-gray-700 p-1">
+                            <div className="p-3 text-gray-400">
+                                <Search size={20} />
+                            </div>
+                            <input
+                                type="text"
+                                placeholder="Search hidden gems..."
+                                className="flex-1 bg-transparent border-none outline-none text-sm py-2 dark:text-gray-100 placeholder-gray-400"
+                                value={searchQuery}
+                                onFocus={() => setShowSuggestions(true)}
+                                onChange={(e) => {
+                                    setSearchQuery(e.target.value);
+                                    setShowSuggestions(true);
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && suggestions.length > 0) {
+                                        handlePlaceSelect(suggestions[0]);
+                                    }
+                                }}
+                            />
+                            {searchQuery && (
+                                <button onClick={() => { setSearchQuery(''); setActivePlace(null); }} className="p-2 text-gray-400 hover:text-gray-600">
+                                    <X size={16} />
+                                </button>
+                            )}
+                            <button
+                                onClick={() => suggestions.length > 0 && handlePlaceSelect(suggestions[0])}
+                                className="p-2 mr-1 bg-mysore-gold/10 hover:bg-mysore-gold/20 text-mysore-gold rounded-xl transition-colors"
+                            >
+                                <Navigation size={20} className="fill-current" />
+                            </button>
+                        </div>
+
+                        {/* Suggestions Dropdown */}
+                        {showSuggestions && suggestions.length > 0 && (
+                            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-gray-800 rounded-2xl shadow-2xl border border-gray-100 dark:border-gray-700 overflow-hidden animate-in">
+                                {suggestions.map(place => (
+                                    <button
+                                        key={place.id}
+                                        onClick={() => handlePlaceSelect(place)}
+                                        className="w-full flex items-center gap-3 p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors text-left border-b border-gray-50 last:border-0"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-mysore-gold/10 flex items-center justify-center">
+                                            <MapPin size={16} className="text-mysore-gold" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.title}</p>
+                                            <p className="text-[10px] text-gray-500">{place.location}</p>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Categories */}
+                    <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+                        {categories.map(cat => (
+                            <button
+                                key={cat}
+                                onClick={() => setSelectedCategory(cat)}
+                                className={`px-5 py-2 rounded-full text-xs font-bold whitespace-nowrap border transition-all ${selectedCategory === cat
+                                    ? 'bg-mysore-gold border-mysore-gold text-white shadow-lg shadow-mysore-gold/30'
+                                    : 'bg-white border-white shadow-md text-gray-700 dark:bg-gray-800 dark:border-gray-700 dark:text-gray-300'
+                                    }`}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* MapComponent Container - Explicit height to fix rendering issues */}
+            <div className="w-full h-full absolute inset-0 z-0" onClick={() => setShowSuggestions(false)}>
+                <MapContainer
+                    center={center}
+                    zoom={zoom}
+                    scrollWheelZoom={true}
+                    className="w-full h-full z-0 outline-none"
+                    zoomControl={false}
+                    style={{ height: '100%', width: '100%' }}
+                >
+
+
+                    <ChangeView center={center} zoom={zoom} />
+                    <TileLayer
+                        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        attribution='&copy; OpenStreetMap'
+                    />
+
+                    {filteredPlaces.map(place => (
+                        <Marker
+                            key={place.id}
+                            position={place.coords}
+                            eventHandlers={{
+                                click: () => handlePlaceSelect(place),
+                            }}
+                        >
+                            <Popup>
+                                <div className="p-1 min-w-[150px]">
+                                    <h4 className="font-bold text-sm text-gray-900">{place.title}</h4>
+                                    <div className="flex items-center gap-1 text-[10px] text-gray-500 mt-1">
+                                        <Star size={10} className="text-yellow-500 fill-current" />
+                                        <span>{place.rating}</span>
+                                        <span>?€¢</span>
+                                        <span>{place.category}</span>
+                                    </div>
+                                </div>
+                            </Popup>
+                        </Marker>
+                    ))}
+                </MapContainer>
+            </div>
+
+            {/* Floating Actions */}
+            {interactive && (
+                <div className={`absolute bottom-24 right-4 z-[1000] flex flex-col gap-3 transition-transform ${activePlace ? '-translate-y-48' : ''}`}>
+                    <button
+                        onClick={() => { setActivePlace(null); setShowBookingPanel(false); setSearchQuery(''); }}
+                        className="p-3 bg-white dark:bg-gray-800 shadow-xl rounded-full text-gray-600 dark:text-gray-300 hover:scale-110 active:scale-95 transition-all border border-gray-100 dark:border-gray-700"
+                    >
+                        <Navigation size={22} />
+                    </button>
+                </div>
+            )}
+
+            {/* Bottom Info Card / Cab Facility */}
+            {interactive && activePlace && (
+                <div className="absolute bottom-6 left-4 right-4 z-[1000] transition-all duration-500">
+                    <div className={`bg-white dark:bg-gray-900 rounded-3xl shadow-2xl overflow-hidden border border-gray-100 dark:border-gray-700 transition-all duration-500 ${showBookingPanel ? 'h-[420px]' : 'h-max'}`}>
+                        {/* Header Image */}
+                        <div className={`relative transition-all duration-500 ${showBookingPanel ? 'h-20' : 'h-32'}`}>
+                            <img src={activePlace.image} alt="" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent"></div>
+                            <button
+                                onClick={() => { setActivePlace(null); setShowBookingPanel(false); setSearchQuery(''); }}
+                                className="absolute top-3 right-3 p-1.5 bg-black/40 text-white rounded-full backdrop-blur-md hover:bg-black/60 transition-colors"
+                            >
+                                <X size={16} />
+                            </button>
+                            <div className="absolute bottom-3 left-4 text-white">
+                                <h3 className="font-bold leading-tight">{activePlace.title}</h3>
+                                <p className="text-[10px] opacity-80">{activePlace.location}</p>
+                            </div>
+                        </div>
+
+                        <div className="p-5 h-full overflow-y-auto no-scrollbar">
+                            {!showBookingPanel ? (
+                                <div className="flex items-center justify-between animate-in">
+                                    <div className="flex gap-6">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Rating</span>
+                                            <div className="flex items-center gap-1 mt-1">
+                                                <Star size={14} className="text-yellow-500 fill-current" />
+                                                <span className="font-bold text-base">{activePlace.rating}</span>
+                                            </div>
+                                        </div>
+                                        <div className="flex flex-col border-l border-gray-100 dark:border-gray-800 pl-6">
+                                            <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Estimate</span>
+                                            <div className="flex items-center gap-1 mt-1">
+                                                <Car size={14} className="text-mysore-gold" />
+                                                <span className="font-bold text-base">?‚¹142</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowBookingPanel(true)}
+                                        className="bg-mysore-gold text-white px-8 py-3.5 rounded-2xl font-bold text-sm flex items-center gap-2 shadow-xl shadow-mysore-gold/30 hover:scale-[1.05] active:scale-[0.95] transition-all"
+                                    >
+                                        <Car size={18} />
+                                        Book Ride
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="space-y-4 animate-in">
+                                    {bookingStage === 'select' && (
+                                        <>
+                                            <div className="flex items-center justify-between">
+                                                <h4 className="text-sm font-bold text-gray-900 dark:text-gray-100">Choose your vehicle</h4>
+                                                <button onClick={() => setShowBookingPanel(false)} className="text-[10px] font-bold text-gray-400 uppercase">Cancel</button>
+                                            </div>
+                                            <div className="grid grid-cols-1 gap-2">
+                                                {cabOptions.map(cab => (
+                                                    <div
+                                                        key={cab.id}
+                                                        onClick={() => handleBookNow(cab)}
+                                                        className="flex items-center justify-between p-3.5 bg-gray-50 dark:bg-gray-800/50 border border-transparent hover:border-mysore-gold/30 rounded-2xl transition-all cursor-pointer group"
+                                                    >
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-12 h-12 bg-white dark:bg-gray-700 rounded-2xl flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform">{cab.icon}</div>
+                                                            <div>
+                                                                <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{cab.type}</p>
+                                                                <p className="text-[10px] text-gray-500">{cab.description}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-right">
+                                                            <p className="font-bold text-gray-900 dark:text-gray-100">{cab.price}</p>
+                                                            <p className="text-[10px] text-green-500 font-bold">{cab.time}</p>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </>
+                                    )}
+
+                                    {bookingStage === 'confirm' && selectedCab && (
+                                        <div className="space-y-6 py-2">
+                                            <div className="text-center space-y-2">
+                                                <div className="w-20 h-20 bg-mysore-gold/10 rounded-full flex items-center justify-center text-4xl mx-auto mb-4 animate-pulse">
+                                                    {selectedCab.icon}
+                                                </div>
+                                                <h4 className="text-lg font-bold">Confirm your {selectedCab.type}</h4>
+                                                <p className="text-sm text-gray-500">Pick-up: Current Location<br />Drop-off: {activePlace.title}</p>
+                                            </div>
+                                            <div className="flex gap-3">
+                                                <button
+                                                    onClick={() => setBookingStage('select')}
+                                                    className="flex-1 py-4 border-2 border-gray-100 dark:border-gray-800 rounded-2xl font-bold text-gray-400 hover:text-gray-600 transition-colors"
+                                                >
+                                                    Back
+                                                </button>
+                                                <button
+                                                    onClick={confirmBooking}
+                                                    className="flex-[2] py-4 bg-black text-white rounded-2xl font-bold shadow-2xl hover:bg-gray-800 transition-colors"
+                                                >
+                                                    Confirm & Pay {selectedCab.price}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {bookingStage === 'success' && (
+                                        <div className="flex flex-col items-center justify-center py-10 space-y-4 fade-in">
+                                            <div className="w-16 h-16 bg-green-500 text-white rounded-full flex items-center justify-center shadow-lg shadow-green-200">
+                                                <Clock size={32} />
+                                            </div>
+                                            <div className="text-center">
+                                                <h4 className="text-xl font-bold text-gray-900 dark:text-gray-100">Booking Confirmed!</h4>
+                                                <p className="text-sm text-gray-500 mt-1">Your driver is arriving in {selectedCab?.time}</p>
+                                            </div>
+                                            <div className="w-full bg-gray-50 dark:bg-gray-800 p-4 rounded-2xl border border-dashed border-gray-300 dark:border-gray-600">
+                                                <div className="flex justify-between items-center">
+                                                    <div>
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">Driver Info</p>
+                                                        <p className="text-sm font-bold">Suresh Kumar</p>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <p className="text-[10px] font-bold text-gray-400 uppercase">OTP</p>
+                                                        <p className="text-sm font-bold tracking-widest text-mysore-gold">4821</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
+
+export const Navbar = ({ onProfileClick, activeTab, setActiveTab }) => {
+    const { t } = useTranslation();
+    const NavLink = ({ id, icon: Icon, label }) => (
+        <button
+            onClick={() => setActiveTab(id)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${activeTab === id
+                ? 'bg-[#D4AF37] text-white shadow-lg shadow-[#D4AF37]/30 font-bold'
+                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800'
+                }`}
+        >
+            <Icon size={18} />
+            <span className="text-xs font-bold uppercase tracking-wide">{label}</span>
+        </button>
+    );
+
+    return (
+        <nav className="flex justify-between items-center px-4 md:px-8 py-3 transition-colors duration-200">
+            <div className="flex flex-col cursor-pointer" onClick={() => setActiveTab && setActiveTab('home')}>
+                <span className="text-sm font-medium text-gray-500 dark:text-gray-400 tracking-wide hidden md:block">Welcome to</span>
+                <h1 className="text-2xl font-black text-gray-900 dark:text-white tracking-tight">
+                    Mysuru <span className="text-mysore-600">Marga</span>
+                </h1>
+            </div>
+
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center gap-1 bg-white/70 dark:bg-gray-800/70 backdrop-blur-3xl p-1.5 rounded-full border border-gray-100 dark:border-gray-700 shadow-sm relative z-50 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-r from-[#D4AF37]/5 via-transparent to-[#D4AF37]/5 pointer-events-none"></div>
+                <NavLink id="home" icon={Home} label="Home" />
+                <NavLink id="explore" icon={Compass} label="Explore" />
+                <NavLink id="MapComponent" icon={MapIcon} label="Map" />
+                <NavLink id="saved" icon={Heart} label="Saved" />
+                <NavLink id="planner" icon={Sparkles} label="Planner" />
+            </div>
+
+            <button
+                onClick={onProfileClick}
+                className="w-12 h-12 rounded-full bg-white/40 dark:bg-gray-800/40 backdrop-blur-md border border-white/20 flex items-center justify-center text-gray-700 dark:text-gray-200 hover:bg-white/60 dark:hover:bg-gray-700/60 transition-all shadow-sm group"
+                aria-label="Profile"
+            >
+                <div className="relative">
+                    <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    <div className="absolute top-0 right-0 w-2 h-2 bg-green-500 rounded-full border-2 border-white dark:border-gray-800"></div>
+                </div>
+            </button>
+        </nav>
+    );
+};
+
+
+export const PlaceCard = ({ image, category, title, description, location, rating, onClick, isSaved, onToggleSave }) => {
+    return (
+        <div
+            onClick={onClick}
+            className="group bg-white/10 dark:bg-black/10 backdrop-blur-xl border border-white/20 dark:border-gray-700/50 rounded-3xl overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:shadow-[0_8px_30px_rgb(212,175,55,0.15)] transition-all duration-300 cursor-pointer relative"
+        >
+            {/* Image Container */}
+            <div className="relative aspect-[4/3] w-full overflow-hidden">
+                <img
+                    src={image}
+                    alt={title}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-60"></div>
+
+                <button
+                    onClick={onToggleSave}
+                    className="absolute top-3 right-3 w-10 h-10 rounded-full bg-white/20 backdrop-blur-md border border-white/20 flex items-center justify-center shadow-lg transition-transform active:scale-90 group-hover:bg-white/30"
+                >
+                    <Heart className={`w-5 h-5 transition-colors ${isSaved ? 'text-red-500 fill-red-500' : 'text-white'}`} />
+                </button>
+
+                {/* Category Badge */}
+                <span className={`absolute top-4 left-4 text-[10px] font-black px-3 py-1.5 rounded-full uppercase tracking-widest text-white backdrop-blur-md
+                    ${category === 'Hyperlocal Food' ? 'bg-emerald-500/80' :
+                        category === 'Hidden Gems' ? 'bg-mysore-500/80' :
+                            category === 'Heritage' ? 'bg-amber-600/80' : 'bg-gray-500/80'}`}>
+                    {category}
+                </span>
+
+                {/* Rating Badge (Floating) */}
+                <div className="absolute bottom-3 right-3 flex items-center space-x-1 bg-black/40 backdrop-blur-md px-2 py-1 rounded-lg border border-white/10">
+                    <Star className="w-3.5 h-3.5 text-yellow-400 fill-yellow-400" />
+                    <span className="text-xs font-bold text-white">{rating}</span>
+                </div>
+            </div>
+
+            {/* Content */}
+            <div className="p-5">
+                <h3 className="font-bold text-gray-900 dark:text-white text-lg leading-tight mb-2 group-hover:text-mysore-700 transition-colors">
+                    {title}
+                </h3>
+
+                <div className="flex items-start gap-2 text-gray-400 dark:text-gray-500 mb-3">
+                    <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                    <span className="text-xs font-medium line-clamp-1">{location}</span>
+                </div>
+
+                <p className="text-sm text-gray-500 dark:text-gray-400 line-clamp-2 leading-relaxed">
+                    {description}
+                </p>
+            </div>
+        </div>
+    );
+};
+
+
+export const PlaceDetails = ({ place, onBack, isSaved, onToggleSave, userEmail, onGetDirections, allPlaces, onPlaceClick }) => {
+    const [showReviewForm, setShowReviewForm] = useState(false);
+    const [localFeedbacks, setLocalFeedbacks] = useState([]);
+    const scrollContainerRef = useRef(null);
+
+    useEffect(() => {
+        if (scrollContainerRef.current) {
+            scrollContainerRef.current.scrollTop = 0;
+        }
+    }, [place]);
+
+    useEffect(() => {
+        const feedbacks = JSON.parse(localStorage.getItem('user_feedback') || '[]');
+        setLocalFeedbacks(feedbacks);
+
+        const handleStorageChange = () => {
+            const updatedFeedbacks = JSON.parse(localStorage.getItem('user_feedback') || '[]');
+            setLocalFeedbacks(updatedFeedbacks);
+        };
+
+        window.addEventListener('storage', handleStorageChange);
+        return () => window.removeEventListener('storage', handleStorageChange);
+    }, []);
+
+    const nearbyPlaces = useMemo(() => {
+        if (!place || !place.coords || !allPlaces) return [];
+        return allPlaces
+            .filter(p => p.id !== place.id && p.coords)
+            .map(p => ({
+                ...p,
+                distance: Math.sqrt(
+                    Math.pow(p.coords[0] - place.coords[0], 2) +
+                    Math.pow(p.coords[1] - place.coords[1], 2)
+                )
+            }))
+            .sort((a, b) => a.distance - b.distance)
+            .slice(0, 4);
+    }, [place, allPlaces]);
+
+    if (!place) return null;
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: place.title,
+                text: place.description,
+                url: window.location.href,
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+        }
+    };
+
+    return (
+        <div className="relative flex flex-col h-full bg-[#f3e3ad]/20 dark:bg-gray-950 animate-in fade-in slide-in-from-right duration-500 overflow-hidden">
+            {/* Transparent Header Over Image */}
+            <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-black/40 to-transparent z-20 pointer-events-none" />
+
+            <div
+                ref={scrollContainerRef}
+                className="flex-1 overflow-y-auto pb-40 custom-scrollbar scroll-smooth"
+            >
+                {/* Hero section */}
+                <div className="relative h-[450px] md:h-[550px] w-full shrink-0 group">
+                    <img
+                        src={place.image}
+                        alt={place.title}
+                        className="w-full h-full object-cover transition-transform duration-[2s] group-hover:scale-105"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+
+                    {/* Back & Action Buttons */}
+                    <div className="absolute top-8 inset-x-8 flex items-center justify-between z-30">
+                        <button
+                            onClick={onBack}
+                            className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-2xl flex items-center justify-center text-white border border-white/20 hover:bg-white/20 hover:scale-110 active:scale-90 transition-all shadow-2xl"
+                        >
+                            <ChevronLeft className="w-6 h-6" />
+                        </button>
+                        <div className="flex gap-4">
+                            <button
+                                onClick={handleShare}
+                                className="w-12 h-12 bg-white/10 backdrop-blur-2xl rounded-2xl flex items-center justify-center text-white border border-white/20 hover:bg-white/20 hover:scale-110 active:scale-90 transition-all shadow-2xl"
+                            >
+                                <Share2 className="w-5 h-5" />
+                            </button>
+                            <button
+                                onClick={(e) => onToggleSave(e, place.id)}
+                                className={`w-12 h-12 backdrop-blur-2xl rounded-2xl flex items-center justify-center border border-white/20 transition-all hover:scale-110 active:scale-90 shadow-2xl ${isSaved ? 'bg-red-500 text-white border-red-400' : 'bg-white/10 text-white'}`}
+                            >
+                                <Heart className={`w-5 h-5 ${isSaved ? 'fill-current' : ''}`} />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Title & Floating Info */}
+                    <div className="absolute bottom-16 left-8 right-8 z-20">
+                        <div className="flex flex-col gap-4 animate-in slide-in-from-bottom-6 duration-1000">
+                            <div className="flex items-center gap-3">
+                                <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] text-white shadow-2xl backdrop-blur-md border border-white/20 ${place.categoryColor || 'bg-amber-600'}`}>
+                                    {place.category}
+                                </span>
+                                <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10">
+                                    <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
+                                    <span className="text-xs font-black text-white">{place.rating}</span>
+                                </div>
+                            </div>
+                            <h1 className="text-5xl md:text-7xl font-serif text-white tracking-tight leading-[0.9] drop-shadow-2xl">
+                                {place.title}
+                            </h1>
+                            <div className="flex items-center gap-2 text-gray-300 font-medium">
+                                <MapPin size={16} className="text-[#D4AF37]" />
+                                <span className="text-sm md:text-base uppercase tracking-widest opacity-80">{place.location}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Curve overlay */}
+                    <div className="absolute -bottom-1 inset-x-0 h-10 bg-[#f3e3ad]/20 dark:bg-gray-950 rounded-t-[3rem] z-30" />
+                </div>
+
+                {/* Main Content Area */}
+                <div className="px-8 md:px-12 pt-16 pb-20 space-y-16">
+                    {/* Quick Info Grid */}
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="bg-white/80 dark:bg-gray-800/60 p-7 rounded-[2.5rem] border border-[#D4AF37]/20 dark:border-gray-700 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                            <div className="w-12 h-12 bg-amber-50 dark:bg-amber-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Clock className="w-6 h-6 text-amber-500" />
+                            </div>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Visiting Hours</h4>
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.visitingTime || '10:00 AM - 5:30 PM'}</p>
+                        </div>
+                        <div className="bg-white/80 dark:bg-gray-800/60 p-7 rounded-[2.5rem] border border-[#D4AF37]/20 dark:border-gray-700 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                            <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <IndianRupee className="w-6 h-6 text-emerald-500" />
+                            </div>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Ticket Price</h4>
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.ticketFee || 'Free/Minimal'}</p>
+                        </div>
+                        <div className="bg-white/80 dark:bg-gray-800/60 p-7 rounded-[2.5rem] border border-[#D4AF37]/20 dark:border-gray-700 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                            <div className="w-12 h-12 bg-blue-50 dark:bg-blue-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Calendar className="w-6 h-6 text-blue-500" />
+                            </div>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Best To Visit</h4>
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.bestTimeToVisit || 'September to March'}</p>
+                        </div>
+                        <div className="bg-white/80 dark:bg-gray-800/60 p-7 rounded-[2.5rem] border border-[#D4AF37]/20 dark:border-gray-700 shadow-xl backdrop-blur-md group transition-all hover:scale-[1.02] hover:shadow-2xl flex flex-col items-center text-center">
+                            <div className="w-12 h-12 bg-purple-50 dark:bg-purple-900/20 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                                <Sparkles className="w-6 h-6 text-purple-500" />
+                            </div>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Popular Time</h4>
+                            <p className="text-sm font-bold text-gray-900 dark:text-gray-100">{place.popularTime || 'Evenings (4PM - 7PM)'}</p>
+                        </div>
+                    </div>
+
+                    {/* About Section */}
+                    <div className="max-w-4xl">
+                        <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[#D4AF37] mb-4">The Story</h2>
+                        <p className="text-xl md:text-2xl font-serif text-gray-800 dark:text-gray-200 leading-relaxed italic">
+                            "{place.story || place.description}"
+                        </p>
+                    </div>
+
+                    {/* Heritage & History Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        {place.history && (
+                            <div className="p-8 bg-slate-50 dark:bg-slate-900/40 rounded-[2.5rem] border-l-8 border-slate-400 shadow-sm">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="p-3 bg-slate-200 dark:bg-slate-800 rounded-2xl">
+                                        <History className="text-slate-700 dark:text-slate-300 w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-2xl font-serif text-slate-900 dark:text-slate-100">Historical Legacy</h3>
+                                </div>
+                                <p className="text-slate-600 dark:text-slate-400 leading-relaxed text-sm md:text-base">
+                                    {place.history}
+                                </p>
+                            </div>
+                        )}
+                        {place.heritage && (
+                            <div className="p-8 bg-amber-50/50 dark:bg-amber-900/10 rounded-[2.5rem] border-l-8 border-amber-400 shadow-sm">
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="p-3 bg-amber-200 dark:bg-amber-800 rounded-2xl">
+                                        <Landmark className="text-amber-700 dark:text-amber-300 w-6 h-6" />
+                                    </div>
+                                    <h3 className="text-2xl font-serif text-amber-900 dark:text-amber-100">Cultural Heritage</h3>
+                                </div>
+                                <p className="text-amber-800/70 dark:text-amber-400/70 leading-relaxed text-sm md:text-base font-medium">
+                                    {place.heritage}
+                                </p>
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2">
+                        {['#heritage', '#culture', '#mysore'].map(tag => (
+                            <span key={tag} className="text-xs font-medium text-amber-600 bg-amber-50 dark:bg-amber-900/20 px-2 py-1 rounded">
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+
+                    {/* Products / Offerings */}
+                    {place.products && place.products.length > 0 && (
+                        <div className="mt-4">
+                            <h2 className="text-lg font-bold text-gray-900 dark:text-white mb-3">Treasures & Offerings</h2>
+                            <div className="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
+                                {place.products.map(prod => (
+                                    <div key={prod.id} className="min-w-[200px] sm:min-w-[240px] bg-white/10 dark:bg-gray-800/30 backdrop-blur-md rounded-3xl border border-white/20 dark:border-gray-700/50 p-4 shadow-sm snap-start">
+                                        {prod.image && (
+                                            <div className="w-full h-32 rounded-2xl overflow-hidden mb-3">
+                                                <img src={prod.image} alt={prod.description} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
+                                            </div>
+                                        )}
+                                        <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1 line-clamp-2">{prod.description}</h3>
+                                        <p className="text-[10px] font-black tracking-widest uppercase text-[#D4AF37]">{prod.priceRange}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+
+
+                    {/* Review Section */}
+                    <div className="mt-8 border-t border-gray-100 dark:border-gray-800 pt-12">
+                        <div className="flex items-center justify-between mb-10">
+                            <div>
+                                <h2 className="text-3xl font-serif text-gray-900 dark:text-white mb-2">Visitor Experiences</h2>
+                                <p className="text-xs text-gray-400 uppercase tracking-widest font-black">Shared by the Mysuru Community</p>
+                            </div>
+                            <button
+                                onClick={() => setShowReviewForm(!showReviewForm)}
+                                className="px-8 py-4 bg-[#D4AF37]/10 text-[#D4AF37] rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-[#D4AF37] hover:text-white transition-all active:scale-95"
+                            >
+                                {showReviewForm ? 'Go Back' : 'Share Experience'}
+                            </button>
+                        </div>
+
+                        {showReviewForm ? (
+                            <div className="max-w-2xl animate-in slide-in-from-bottom-4 duration-500">
+                                <FeedbackSection
+                                    userEmail={userEmail}
+                                    onSuccess={() => {
+                                        const updatedFeedbacks = JSON.parse(localStorage.getItem('user_feedback') || '[]');
+                                        setLocalFeedbacks(updatedFeedbacks);
+                                        setTimeout(() => setShowReviewForm(false), 2000);
+                                    }}
+                                />
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {localFeedbacks.length === 0 ? (
+                                    <div className="p-16 text-center bg-gray-50 dark:bg-gray-800/30 rounded-[3rem] border border-dashed border-gray-200 dark:border-gray-700">
+                                        <MessageSquareQuote size={40} className="mx-auto text-gray-200 mb-4" />
+                                        <p className="text-gray-400 font-medium italic">Be the first to share your journey here...</p>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {localFeedbacks.map((fb) => (
+                                            <div key={fb.id} className="p-8 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-[2.5rem] shadow-sm hover:shadow-md transition-shadow">
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/20 flex items-center justify-center text-[#D4AF37] font-black text-xl">
+                                                            {fb.userEmail?.charAt(0).toUpperCase()}
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-black text-gray-900 dark:text-white text-xs uppercase tracking-widest">{fb.userEmail?.split('@')[0]}</p>
+                                                            <div className="flex gap-1 mt-1">
+                                                                {[1, 2, 3, 4, 5].map((star) => (
+                                                                    <Star key={star} size={10} className={star <= fb.rating ? "fill-[#D4AF37] text-[#D4AF37]" : "text-gray-200 dark:text-gray-700"} />
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <p className="text-gray-600 dark:text-gray-400 italic text-base leading-relaxed">
+                                                    "{fb.comment}"
+                                                </p>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* Smart Navigation & Booking Bar */}
+            <div className="fixed bottom-0 inset-x-0 p-6 md:p-8 pt-12 md:pt-16 bg-gradient-to-t from-[#fcf6e5] via-[#fcf6e5]/98 dark:from-gray-950 dark:via-gray-950/98 to-transparent z-50">
+                <div className="max-w-4xl mx-auto flex flex-row gap-3 md:gap-4 items-stretch h-16 md:h-20">
+                    {/* Primary Direction Button */}
+                    <button
+                        onClick={() => {
+                            if (onGetDirections) {
+                                onGetDirections(place);
+                            } else {
+                                const url = `https://www.google.com/maps/dir/?api=1&destination=${place.coords[0]},${place.coords[1]}`;
+                                window.open(url, '_blank');
+                            }
+                        }}
+                        className="flex-[3] bg-black dark:bg-[#D4AF37] text-white dark:text-black font-black rounded-[2rem] flex items-center justify-center gap-2 md:gap-4 shadow-2xl hover:scale-[1.02] active:scale-95 transition-all group overflow-hidden"
+                    >
+                        <Compass className="w-5 h-5 md:w-6 md:h-6 animate-spin-slow group-hover:animate-spin" />
+                        <div className="text-left">
+                            <span className="hidden md:block text-[10px] uppercase tracking-widest opacity-60">Interactive Map</span>
+                            <span className="block text-[10px] md:text-xs uppercase tracking-[0.2em]">Get Directions</span>
+                        </div>
+                    </button>
+
+                    {/* Quick Booking Options */}
+                    <button
+                        onClick={() => {
+                            const url = `https://m.uber.com/ul/?action=setPickup&client_id=YOUR_CLIENT_ID&pickup=my_location&dropoff[formatted_address]=${place.title}+Mysore&dropoff[nickname]=${place.title}`;
+                            window.open(url, '_blank');
+                        }}
+                        className="flex-1 bg-white dark:bg-gray-800 border border-black/5 dark:border-white/5 rounded-[2rem] flex flex-col items-center justify-center gap-1 hover:bg-black hover:text-white dark:hover:bg-[#D4AF37] dark:hover:text-black transition-all group shadow-xl"
+                        title="Book via Uber"
+                    >
+                        <Car className="w-5 h-5 text-gray-400 group-hover:text-inherit" />
+                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest uppercase">Uber</span>
+                    </button>
+                    <button
+                        onClick={() => {
+                            // Rapido deep link simulation (generally rapido://)
+                            const url = `https://www.rapido.bike/`;
+                            window.open(url, '_blank');
+                        }}
+                        className="flex-1 bg-white dark:bg-gray-800 border border-black/5 dark:border-white/5 rounded-[2rem] flex flex-col items-center justify-center gap-1 hover:bg-black hover:text-white dark:hover:bg-[#D4AF37] dark:hover:text-black transition-all group shadow-xl"
+                        title="Book via Rapido"
+                    >
+                        <Bike className="w-5 h-5 text-gray-400 group-hover:text-inherit" />
+                        <span className="text-[8px] md:text-[10px] font-black uppercase tracking-widest">Rapido</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+export const Saved = ({ savedPlaceIds = [], allPlaces = [], onToggleSave, onCardClick }) => {
+    const savedPlaces = allPlaces.filter(place => savedPlaceIds.includes(place.id));
+
+    if (savedPlaces.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-[calc(100vh-140px)] px-4 text-center">
+                <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4 transition-colors">
+                    <Heart className="w-8 h-8 text-red-500" />
+                </div>
+                <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">No Saved Places Yet</h3>
+                <p className="text-gray-500 dark:text-gray-400 text-sm max-w-xs">
+                    Start exploring and save your favorite hidden gems to create your personal itinerary.
+                </p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="px-4 py-8 pb-10">
+            <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-4">Saved Places ({savedPlaces.length})</h3>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                {savedPlaces.map(place => (
+                    <PlaceCard
+                        key={place.id}
+                        {...place}
+                        isSaved={true}
+                        onToggleSave={(e) => onToggleSave(e, place.id)}
+                        onClick={() => onCardClick && onCardClick(place)}
+                    />
+                ))}
+            </div>
+        </div>
+    );
+};
+
+
+
+
+
+export const AdminDashboard = ({ onLogout }) => {
+    const [activeTab, setActiveTab] = useState('overview');
+    const [userFilter, setUserFilter] = useState('all'); // 'all', 'user', 'partner'
+    const [users, setUsers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [adminSettings, setAdminSettings] = useState({
+        publicRegistration: true,
+        partnerVerification: true,
+        globalBroadcasts: true
+    });
+    const [siteFeedback, setSiteFeedback] = useState([]);
+    const [spotsCount, setSpotsCount] = useState(allPlaces.length);
+    const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: null, type: 'danger' });
+    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+
+    // Load users from Supabase
+    const loadUsers = async () => {
+        setLoading(true);
+        try {
+            // Use local supabase instance
+
+            if (supabase) {
+                // Fetch all profiles from the custom table we created
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .order('updated_at', { ascending: false });
+
+                if (!error && data) {
+                    const supabaseUsers = data.map(u => ({
+                        fullName: u.full_name || u.fullName || 'Resident',
+                        email: u.email,
+                        phone: u.phone || '-',
+                        role: u.role || 'user',
+                        joinedAt: u.updated_at || u.created_at,
+                        source: 'Supabase'
+                    }));
+                    setUsers(supabaseUsers);
+                } else {
+                    console.error("Supabase fetch error:", error);
+                    // Fallback to local if Supabase fails or table doesn't exist yet
+                    const storedUsers = localStorage.getItem('usersDB');
+                    if (storedUsers) setUsers(JSON.parse(storedUsers));
+                }
+            } else {
+                // Pure demo mode fallback
+                const storedUsers = localStorage.getItem('usersDB');
+                if (storedUsers) setUsers(JSON.parse(storedUsers));
+            }
+        } catch (error) {
+            console.error("Critical failure loading users", error);
+        }
+        setLoading(false);
+    };
+
+    const loadSpotsCount = async () => {
+        try {
+            // Use local supabase instance
+            if (supabase) {
+                const { count, error } = await supabase
+                    .from('heritage_spots')
+                    .select('*', { count: 'exact', head: true });
+
+                if (!error && count !== null) {
+                    setSpotsCount(count);
+                }
+            }
+        } catch (err) {
+            console.error("Error loading spots count:", err);
+        }
+    };
+
+    const loadFeedback = async () => {
+        try {
+            // Use local supabase instance
+            if (supabase) {
+                const { data, error } = await supabase
+                    .from('admin_feedback')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                if (data) {
+                    setSiteFeedback(data.map(f => ({
+                        id: f.id,
+                        userEmail: f.email || 'Anonymous Traveler',
+                        rating: f.rating,
+                        comment: f.comment,
+                        timestamp: f.created_at
+                    })));
+                }
+            }
+        } catch (err) {
+            console.error("Error loading feedback:", err);
+        }
+    };
+
+    useEffect(() => {
+        loadUsers();
+        loadFeedback();
+        loadSpotsCount();
+    }, []);
+
+    const totalUsers = users.length;
+    const partnersCount = users.filter(u => u.role === 'partner').length;
+
+    const handleTabChange = (tab, filter = 'all') => {
+        setActiveTab(tab);
+        setUserFilter(filter);
+    };
+
+    const handleDeleteUser = async (email) => {
+        setConfirmModal({
+            show: true,
+            title: 'Remove Resident',
+            message: `Are you sure you want to remove ${email} from the registry? This action cannot be undone.`,
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    // Use local supabase instance
+
+                    // 1. Delete from Supabase profiles table
+                    if (supabase) {
+                        const { error } = await supabase
+                            .from('profiles')
+                            .delete()
+                            .eq('email', email);
+
+                        if (error) {
+                            console.error("Supabase deletion error:", error.message);
+                        }
+                    }
+
+                    // 2. Fallback/Cleanup for Local Storage
+                    const storedUsers = JSON.parse(localStorage.getItem('usersDB') || '[]');
+                    const updatedUsers = storedUsers.filter(u => u.email !== email);
+                    localStorage.setItem('usersDB', JSON.stringify(updatedUsers));
+
+                    // 3. Update UI State
+                    setUsers(prev => prev.filter(u => u.email !== email));
+                    showNotification(`${email} has been removed.`);
+                } catch (err) {
+                    console.error("Critical error during deletion:", err);
+                    showNotification("Deletion failed.", "error");
+                }
+                setConfirmModal(prev => ({ ...prev, show: false }));
+            }
+        });
+    };
+
+    const showNotification = (message, type = 'success') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
+    };
+
+    const toggleSetting = (key) => {
+        setAdminSettings(prev => ({ ...prev, [key]: !prev[key] }));
+    };
+
+    const handleReset = () => {
+        setConfirmModal({
+            show: true,
+            title: 'System Reset',
+            message: 'CRITICAL ACTION: This will reset all administrative overrides. Are you absolutely sure?',
+            type: 'danger',
+            onConfirm: () => {
+                showNotification("System state normalized.");
+                setConfirmModal(prev => ({ ...prev, show: false }));
+            }
+        });
+    };
+
+    return (
+        <div className="min-h-screen mysore-main-bg font-sans transition-colors duration-500 flex selection:bg-[#D4AF37]/30">
+            {/* Sidebar */}
+            <aside className="fixed inset-y-0 left-0 bg-white/70 dark:bg-gray-900/70 backdrop-blur-2xl w-72 border-r border-gray-100 dark:border-gray-800 shadow-2xl z-30 hidden lg:flex flex-col">
+                <div className="p-10 flex items-center gap-3">
+                    <div className="w-10 h-10 bg-[#D4AF37] rounded-xl flex items-center justify-center shadow-lg shadow-[#D4AF37]/20">
+                        <Shield className="h-6 w-6 text-black" />
+                    </div>
+                    <div>
+                        <h1 className="text-xl font-serif text-black dark:text-white leading-none">Mysuru</h1>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37]">Administration</p>
+                    </div>
+                </div>
+
+                <nav className="flex-1 px-6 space-y-3">
+                    <NavItem icon={<TrendingUp />} label="Overview" active={activeTab === 'overview'} onClick={() => handleTabChange('overview')} />
+                    <NavItem icon={<Users />} label="Residents" active={activeTab === 'users'} onClick={() => handleTabChange('users', 'all')} />
+                    <NavItem icon={<Inbox />} label="Invitations" active={activeTab === 'invites'} onClick={() => handleTabChange('invites')} />
+                    <NavItem icon={<Settings />} label="Settings" active={activeTab === 'settings'} onClick={() => handleTabChange('settings')} />
+                </nav>
+
+                <div className="p-8">
+                    <button
+                        onClick={onLogout}
+                        className="flex items-center gap-4 w-full px-6 py-4 text-gray-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-2xl transition-all font-bold text-sm"
+                    >
+                        <LogOut className="h-5 w-5" />
+                        <span>Sign Out</span>
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content Area */}
+            <main className="lg:ml-72 flex-1 h-screen overflow-y-auto custom-scrollbar">
+                {/* Mobile Header */}
+                <div className="lg:hidden bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl p-6 border-b border-gray-100 dark:border-gray-800 flex justify-between items-center sticky top-0 z-40">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-[#D4AF37] rounded-lg flex items-center justify-center">
+                            <Shield className="h-5 w-5 text-black" />
+                        </div>
+                        <span className="font-serif text-lg text-black dark:text-white">Admin Core</span>
+                    </div>
+                    <button onClick={onLogout} className="p-2 text-gray-500 hover:text-red-500">
+                        <LogOut className="h-6 w-6" />
+                    </button>
+                </div>
+
+                <div className="p-8 lg:p-12 max-w-7xl mx-auto">
+                    {activeTab === 'overview' && (
+                        <OverviewTab
+                            totalUsers={totalUsers}
+                            partnersCount={partnersCount}
+                            activeLocations={spotsCount}
+                            siteFeedback={siteFeedback}
+                            onNavigate={handleTabChange}
+                        />
+                    )}
+                    {activeTab === 'users' && (
+                        <UsersTab
+                            users={users}
+                            loading={loading}
+                            filter={userFilter}
+                            setFilter={setUserFilter}
+                            onDeleteUser={handleDeleteUser}
+                        />
+                    )}
+                    {activeTab === 'invites' && (
+                        <InvitationsTab showNotification={showNotification} />
+                    )}
+                    {activeTab === 'settings' && (
+                        <SettingsTab settings={adminSettings} onToggle={toggleSetting} loadUsers={loadUsers} handleReset={handleReset} />
+                    )}
+                </div>
+            </main>
+
+            {/* Custom Confirmation Modal */}
+            {confirmModal.show && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}></div>
+                    <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 w-full max-w-md relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-8 sm:p-10">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${confirmModal.type === 'danger' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+                                <Shield className="h-7 w-7" />
+                            </div>
+                            <h3 className="text-2xl font-serif text-black dark:text-white mb-3">{confirmModal.title}</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-8">{confirmModal.message}</p>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button
+                                    onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+                                    className="flex-1 py-4 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-black dark:hover:text-white transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmModal.onConfirm}
+                                    className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95 ${confirmModal.type === 'danger' ? 'bg-rose-500 text-white shadow-rose-500/20' : 'bg-black dark:bg-[#D4AF37] text-white dark:text-black shadow-black/20'}`}
+                                >
+                                    Confirm Action
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Premium Toast Notification */}
+            {notification.show && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[101] animate-in slide-in-from-bottom-10 duration-500">
+                    <div className="bg-black dark:bg-gray-800 text-white px-8 py-4 rounded-[1.5rem] shadow-2xl flex items-center gap-4 border border-white/10">
+                        <div className={`w-2 h-2 rounded-full ${notification.type === 'error' ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`}></div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{notification.message}</span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export const NavItem = ({ icon, label, active, onClick }) => (
+    <button
+        onClick={onClick}
+        className={`w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300 ${active
+            ? 'bg-black dark:bg-[#D4AF37] text-white dark:text-black shadow-xl shadow-black/10 dark:shadow-[#D4AF37]/20 scale-[1.02]'
+            : 'text-gray-500 dark:text-gray-400 hover:bg-white dark:hover:bg-gray-800/50 hover:text-black dark:hover:text-white'
+            }`}>
+        {React.cloneElement(icon, { size: 20 })}
+        <span className="font-bold text-sm">{label}</span>
+    </button>
+);
+
+export const StatCard = ({ title, value, change, icon, bg, onClick }) => (
+    <button
+        onClick={onClick}
+        className="text-left w-full bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-8 rounded-[2.5rem] shadow-xl border border-gray-100 dark:border-gray-800 hover:scale-[1.02] transition-all group"
+    >
+        <div className="flex justify-between items-start mb-6">
+            <div className={`p-4 rounded-2xl ${bg} group-hover:scale-110 transition-transform duration-500`}>
+                {icon}
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 rounded-full text-xs font-black">
+                <TrendingUp size={12} />
+                <span>{change}</span>
+            </div>
+        </div>
+        <h3 className="text-4xl font-serif text-black dark:text-white mb-2 leading-none">{value}</h3>
+        <p className="text-gray-400 dark:text-gray-500 text-[10px] font-black uppercase tracking-[0.2em]">{title}</p>
+    </button>
+);
+
+export const OverviewTab = ({ totalUsers, partnersCount, activeLocations, siteFeedback, onNavigate }) => (
+    <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <header>
+            <h2 className="text-5xl font-serif text-black dark:text-white leading-tight">Welcome Back</h2>
+        </header>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <StatCard
+                title="Total Residents"
+                value={totalUsers}
+                change="+12.4%"
+                icon={<Users className="h-7 w-7 text-blue-600" />}
+                bg="bg-blue-100 dark:bg-blue-900/30"
+                onClick={() => onNavigate('users', 'user')}
+            />
+            <StatCard
+                title="Verified Heritage Spots"
+                value={activeLocations}
+                change="+5.2%"
+                icon={<MapIcon className="h-7 w-7 text-emerald-600" />}
+                bg="bg-emerald-100 dark:bg-emerald-900/30"
+            />
+            <StatCard
+                title="Active Partners"
+                value={partnersCount}
+                change="+24.8%"
+                icon={<BarChart3 className="h-7 w-7 text-amber-600" />}
+                bg="bg-amber-100 dark:bg-amber-900/30"
+                onClick={() => onNavigate('users', 'partner')}
+            />
+        </div>
+
+        {/* Heritage Pulse MapComponent Integration */}
+        <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[3rem] shadow-2xl p-10 border border-gray-100 dark:border-gray-800">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+                <div>
+                    <h3 className="text-2xl font-serif text-black dark:text-white">Live Heritage Pulse</h3>
+                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-2">Real-time spatial activity across Mysuru</p>
+                </div>
+                <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_15px_rgba(16,185,129,0.5)]"></div>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">System Nominal</span>
+                </div>
+            </div>
+
+            <div className="h-[450px] rounded-[2.5rem] overflow-hidden border border-gray-100 dark:border-gray-700 relative shadow-inner group">
+                <MapComponent />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700"></div>
+                <div className="absolute bottom-8 left-8 p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 pointer-events-none opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-700">
+                    <p className="text-white text-xs font-bold uppercase tracking-widest leading-relaxed">Global Heritage Node Override Active</p>
+                </div>
+            </div>
+        </div>
+
+        {/* Recent Feedback Section */}
+        <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[3rem] shadow-2xl p-10 border border-gray-100 dark:border-gray-800">
+            <div className="flex items-center gap-4 mb-10">
+                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl">
+                    <MessageSquare className="h-6 w-6 text-indigo-600" />
+                </div>
+                <div>
+                    <h3 className="text-2xl font-serif text-black dark:text-white">Recent Feedback</h3>
+                </div>
+            </div>
+
+            <div className="space-y-6">
+                {(() => {
+                    const feedback = siteFeedback;
+                    if (feedback.length === 0) {
+                        return (
+                            <div className="py-12 text-center border-2 border-dashed border-gray-100 dark:border-gray-800 rounded-[2rem]">
+                                <p className="text-gray-400 font-serif italic">Silence in the halls of feedback...</p>
+                            </div>
+                        );
+                    }
+                    return feedback.slice(0, 5).map((item) => (
+                        <div key={item.id} className="bg-white dark:bg-gray-800/40 p-6 rounded-[2rem] border border-gray-50 dark:border-gray-700/50 hover:scale-[1.01] transition-all duration-300">
+                            <div className="flex justify-between items-start mb-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-indigo-100 dark:bg-indigo-900/30 rounded-xl flex items-center justify-center text-indigo-600 font-black text-sm">
+                                        {item.userEmail.charAt(0).toUpperCase()}
+                                    </div>
+                                    <div>
+                                        <h4 className="text-sm font-bold text-black dark:text-white">{item.userEmail}</h4>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">{new Date(item.timestamp).toLocaleDateString()}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1 text-amber-500">
+                                    <Star size={12} fill="currentColor" />
+                                    <span className="text-sm font-black">{item.rating}</span>
+                                </div>
+                            </div>
+                            <p className="text-gray-600 dark:text-gray-300 text-sm italic leading-relaxed">"{item.comment}"</p>
+                        </div>
+                    ));
+                })()}
+            </div>
+        </div>
+    </div>
+);
+
+export const UsersTab = ({ users, filter, setFilter, onDeleteUser }) => {
+    const filteredUsers = (filter === 'all'
+        ? [...users]
+        : users.filter(user => user.role === filter))
+        .sort((a, b) => new Date(b.joinedAt || 0) - new Date(a.joinedAt || 0));
+
+    return (
+        <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <header className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+                <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#D4AF37] mb-3">Resident Management</p>
+                    <h2 className="text-4xl font-serif text-black dark:text-white capitalize">
+                        {filter === 'all' ? 'The Collective' : `${filter} Directory`}
+                    </h2>
+                </div>
+
+                <div className="flex flex-wrap gap-2 p-1.5 bg-white/50 dark:bg-gray-800/50 backdrop-blur-xl rounded-2xl border border-gray-100 dark:border-gray-700">
+                    {['all', 'user', 'partner', 'admin'].map(f => (
+                        <button
+                            key={f}
+                            onClick={() => setFilter(f)}
+                            className={`px-5 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${filter === f
+                                ? 'bg-black dark:bg-[#D4AF37] text-white dark:text-black shadow-lg'
+                                : 'text-gray-400 hover:text-black dark:hover:text-white'}`}
+                        >
+                            {f}
+                        </button>
+                    ))}
+                </div>
+            </header>
+
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[3rem] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-gray-100 dark:border-gray-800">
+                                <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Identity</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Role</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Contact</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Date</th>
+                                <th className="px-10 py-8 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 text-right"></th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50 dark:divide-gray-800">
+                            {filteredUsers.map((user, index) => (
+                                <tr key={index} className="group hover:bg-white dark:hover:bg-gray-800/80 transition-colors">
+                                    <td className="px-10 py-8">
+                                        <div className="flex items-center gap-5">
+                                            <div className="h-14 w-14 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] font-black text-xl shadow-inner">
+                                                {user.fullName ? user.fullName.charAt(0).toUpperCase() : '?'}
+                                            </div>
+                                            <div>
+                                                <div className="font-serif text-lg text-black dark:text-white leading-tight mb-1">{user.fullName}</div>
+                                                <div className="text-xs text-gray-400 font-medium lowercase tracking-tighter">{user.email || 'No email'}</div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest
+                                        ${user.role === 'admin' ? 'bg-purple-100 dark:bg-purple-900/20 text-purple-600' :
+                                                user.role === 'partner' ? 'bg-blue-100 dark:bg-blue-900/20 text-blue-600' :
+                                                    'bg-emerald-100 dark:bg-emerald-900/20 text-emerald-600'}`}>
+                                            {user.role}
+                                        </span>
+                                    </td>
+                                    <td className="px-10 py-8">
+                                        <div className="text-xs font-bold text-gray-500">{user.phone || '?€“'}</div>
+                                    </td>
+                                    <td className="px-10 py-8 text-xs font-bold text-gray-400">
+                                        {user.joinedAt ? new Date(user.joinedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Heritage Epoch'}
+                                    </td>
+                                    <td className="px-10 py-8 text-right">
+                                        <button
+                                            onClick={() => onDeleteUser(user.email)}
+                                            className="p-3 text-gray-300 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-xl transition-all"
+                                        >
+                                            <X size={18} />
+                                        </button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+export const InvitationsTab = ({ showNotification }) => {
+    const [invites, setInvites] = useState([]);
+
+    useEffect(() => {
+        loadApplications();
+    }, []);
+
+    const loadApplications = async () => {
+        let allApps = [];
+
+        // 1. Try Supabase
+        try {
+            // Use local supabase instance
+            if (supabase) {
+                const { data, error } = await supabase
+                    .from('partner_applications')
+                    .select('*')
+                    .order('created_at', { ascending: false });
+
+                if (!error && data) {
+                    allApps = data.map(inv => ({
+                        id: inv.id,
+                        partnerName: inv.full_name,
+                        partnerEmail: inv.email,
+                        spotName: inv.spot_name,
+                        status: inv.status,
+                        timestamp: inv.created_at,
+                        source: 'cloud'
+                    }));
+                }
+            }
+        } catch (err) {
+            console.warn("Supabase fetch failed for apps:", err);
+        }
+
+        // 2. Load Local Invites
+        const local = JSON.parse(localStorage.getItem('collaboration_invites') || '[]');
+        const localApps = local.map(inv => ({
+            ...inv,
+            source: 'local',
+            // Ensure schema compatibility
+            partnerName: inv.partnerName || inv.full_name,
+            partnerEmail: inv.partnerEmail || inv.email,
+            timestamp: inv.timestamp || inv.created_at
+        }));
+
+        // 3. Merge
+        const combined = [...allApps, ...localApps].sort((a, b) =>
+            new Date(b.timestamp) - new Date(a.timestamp)
+        );
+        setInvites(combined);
+    };
+
+    const handleStatusUpdate = async (invite, newStatus) => {
+        try {
+            // Use local supabase instance
+
+            // 1. Update Cloud (if applicable)
+            if (supabase && invite.source === 'cloud') {
+                const { error: updateError } = await supabase
+                    .from('partner_applications')
+                    .update({ status: newStatus })
+                    .eq('id', invite.id);
+
+                if (updateError) throw updateError;
+            }
+
+            // 2. Update Local (always, to be safe or if local source)
+            const local = JSON.parse(localStorage.getItem('collaboration_invites') || '[]');
+            const updatedLocal = local.map(inv => {
+                if (inv.id === invite.id || inv.partnerEmail === invite.partnerEmail) {
+                    return { ...inv, status: newStatus };
+                }
+                return inv;
+            });
+            localStorage.setItem('collaboration_invites', JSON.stringify(updatedLocal));
+
+            // 3. Update UI state
+            setInvites(prev => prev.map(inv =>
+                (inv.id === invite.id) ? { ...inv, status: newStatus } : inv
+            ));
+
+            // 4. If accepted, sync to the verified_partners table (Cloud)
+            if (newStatus === 'accepted' && supabase) {
+                await supabase
+                    .from('verified_partners')
+                    .upsert({
+                        partner_name: invite.partnerName,
+                        partner_email: invite.partnerEmail,
+                        spot_name: invite.spotName,
+                        category: invite.category || 'Heritage',
+                        status: 'verified'
+                    }, { onConflict: 'partner_email' });
+            }
+            showNotification(`Application ${newStatus}.`);
+        } catch (err) {
+            console.error("Error updating status:", err);
+            showNotification("Protocol update failed.", "error");
+        }
+    };
+
+    return (
+        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <header>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#D4AF37] mb-3">Partnership Protocol</p>
+                <h2 className="text-5xl font-serif text-black dark:text-white truncate">Collaboration Requests</h2>
+            </header>
+
+            <div className="grid grid-cols-1 gap-6">
+                {invites.length === 0 ? (
+                    <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2.5rem] p-24 text-center border border-dashed border-gray-200 dark:border-gray-800">
+                        <Inbox size={64} className="mx-auto text-gray-200 dark:text-gray-700 mb-6" />
+                        <p className="text-gray-400 font-serif text-2xl italic tracking-wide">No petitioners at the gate...</p>
+                    </div>
+                ) : (
+                    invites.map(invite => (
+                        <div key={invite.id} className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2.5rem] p-10 shadow-xl border border-gray-100 dark:border-gray-800 flex flex-col md:flex-row md:items-center justify-between gap-8 group hover:scale-[1.01] transition-all duration-300">
+                            <div className="flex items-center gap-8">
+                                <div className="w-20 h-20 rounded-3xl bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center text-amber-600 font-serif text-3xl shadow-inner group-hover:scale-110 transition-transform duration-500">
+                                    {invite.partnerName ? invite.partnerName.charAt(0) : '?'}
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex items-center gap-4">
+                                        <h4 className="text-2xl font-serif text-black dark:text-white">{invite.partnerName}</h4>
+                                        <span className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-[0.2em] ${invite.status === 'pending' ? 'bg-amber-100 text-amber-600' :
+                                            invite.status === 'accepted' ? 'bg-emerald-100 text-emerald-600' :
+                                                'bg-rose-100 text-rose-600'
+                                            }`}>
+                                            {invite.status}
+                                        </span>
+                                    </div>
+                                    <div className="flex flex-col md:flex-row gap-4 text-xs font-bold text-gray-400">
+                                        <div className="flex items-center gap-2">
+                                            <Handshake size={14} className="text-[#D4AF37]" />
+                                            <span className="uppercase tracking-widest">{invite.spotName}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                            <Clock size={14} />
+                                            <span>{new Date(invite.timestamp).toLocaleString()}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {invite.status === 'pending' && (
+                                <div className="flex items-center gap-4">
+                                    <button
+                                        onClick={() => handleStatusUpdate(invite, 'rejected')}
+                                        className="h-14 w-14 flex items-center justify-center text-gray-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-900/10 rounded-2xl transition-all"
+                                    >
+                                        <X size={24} />
+                                    </button>
+                                    <button
+                                        onClick={() => handleStatusUpdate(invite, 'accepted')}
+                                        className="h-14 px-10 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:scale-105 transition-all"
+                                    >
+                                        Accept Invite
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+};
+
+export const SettingsTab = ({ settings, onToggle, loadUsers }) => {
+    const downloadCSV = (filename, content) => {
+        const element = document.createElement('a');
+        const file = new Blob([content], { type: 'text/csv' });
+        element.href = URL.createObjectURL(file);
+        element.download = filename;
+        document.body.appendChild(element);
+        element.click();
+    };
+
+    const handleExportUsers = () => {
+        const users = JSON.parse(localStorage.getItem('usersDB') || '[]');
+        if (!users.length) {
+            alert('No residents found in registry.');
+            return;
+        }
+
+        // Sanitize data: Remove sensitive fields like passwords
+        const sanitizedUsers = users.map(({ password, confirmPassword, ...rest }) => rest);
+
+        const headers = Object.keys(sanitizedUsers[0]).join(',');
+        const rows = sanitizedUsers.map(u => Object.values(u).map(v => `"${v}"`).join(',')).join('\n');
+        downloadCSV('mysuru_residents.csv', headers + '\n' + rows);
+    };
+
+    const handleClearCache = () => {
+        localStorage.clear();
+        window.location.reload();
+    };
+
+    return (
+        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+            <header>
+                <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#D4AF37] mb-3">Core Configuration</p>
+                <h2 className="text-5xl font-serif text-black dark:text-white truncate">Administrative Settings</h2>
+            </header>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Visual Governance (State Toggles) */}
+                <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 space-y-8">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-2xl">
+                            <Shield className="h-6 w-6 text-amber-600" />
+                        </div>
+                        <h3 className="text-xl font-serif text-black dark:text-white">General Governance</h3>
+                    </div>
+                    {/* Keeps existing toggles */}
+                    <div className="space-y-4">
+                        <AdminSettingItem icon={<Globe />} label="Public Registration" description="Allow new user identities" checked={settings.publicRegistration} onToggle={() => onToggle('publicRegistration')} />
+                        <AdminSettingItem icon={<Lock />} label="Partner Verification" description="Require manual approval" checked={settings.partnerVerification} onToggle={() => onToggle('partnerVerification')} />
+                        <AdminSettingItem icon={<Bell />} label="Global Broadcasts" description="Enable announcements" checked={settings.globalBroadcasts} onToggle={() => onToggle('globalBroadcasts')} />
+                    </div>
+                </div>
+
+                {/* Data Actions (New) */}
+                <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2.5rem] p-10 border border-gray-100 dark:border-gray-800 space-y-8">
+                    <div className="flex items-center gap-4">
+                        <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-2xl">
+                            <Database className="h-6 w-6 text-indigo-600" />
+                        </div>
+                        <h3 className="text-xl font-serif text-black dark:text-white">Data Management</h3>
+                    </div>
+
+                    <div className="space-y-4">
+                        <button onClick={handleExportUsers} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl hover:bg-white dark:hover:bg-gray-800 transition-all group">
+                            <div className="flex items-center gap-4">
+                                <Download className="text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors" size={20} />
+                                <div className="text-left">
+                                    <h4 className="text-sm font-bold text-black dark:text-white">Export Registry</h4>
+                                    <p className="text-[10px] text-gray-400 font-medium">Download resident data (CSV)</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button onClick={loadUsers} className="w-full flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-800/50 rounded-2xl hover:bg-white dark:hover:bg-gray-800 transition-all group">
+                            <div className="flex items-center gap-4">
+                                <RefreshCcw className="text-gray-400 group-hover:text-black dark:group-hover:text-white transition-colors" size={20} />
+                                <div className="text-left">
+                                    <h4 className="text-sm font-bold text-black dark:text-white">Refresh Nodes</h4>
+                                    <p className="text-[10px] text-gray-400 font-medium">Re-synchronize with database</p>
+                                </div>
+                            </div>
+                        </button>
+
+                        <button onClick={handleClearCache} className="w-full flex items-center justify-between p-4 bg-red-50 dark:bg-red-900/10 rounded-2xl hover:bg-red-100 dark:hover:bg-red-900/20 transition-all group border border-transparent hover:border-red-200">
+                            <div className="flex items-center gap-4">
+                                <Trash2 className="text-red-400 group-hover:text-red-600 transition-colors" size={20} />
+                                <div className="text-left">
+                                    <h4 className="text-sm font-bold text-red-600 dark:text-red-400">Purge Local Cache</h4>
+                                    <p className="text-[10px] text-red-400/70 font-medium">Clear app state & logout</p>
+                                </div>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const AdminSettingItem = ({ icon, label, description, checked, onToggle }) => (
+    <div
+        onClick={onToggle}
+        className="flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-800/40 rounded-2xl transition-all cursor-pointer"
+    >
+        <div className="flex items-center gap-4">
+            <div className="text-gray-400">{icon}</div>
+            <div>
+                <h4 className="text-sm font-bold text-black dark:text-white">{label}</h4>
+                <p className="text-[10px] text-gray-400 font-medium">{description}</p>
+            </div>
+        </div>
+        <div className={`w-12 h-6 rounded-full relative transition-all duration-300 ${checked ? 'bg-black dark:bg-[#D4AF37]' : 'bg-gray-200 dark:bg-gray-800'}`}>
+            <div className={`w-4 h-4 bg-white rounded-full absolute top-1 transition-all duration-300 ${checked ? 'translate-x-7' : 'translate-x-1'}`}></div>
+        </div>
+    </div>
+);
+
+
+export const AuthPage = ({ onLogin, onSignUp }) => {
+    const [isSignUp, setIsSignUp] = useState(false);
+
+    // Login State
+    const [loginIdentifier, setLoginIdentifier] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+    const [showLoginPassword, setShowLoginPassword] = useState(false);
+    const [loginError, setLoginError] = useState('');
+    const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+    // Sign-Up State
+    const [signUpData, setSignUpData] = useState({
+        fullName: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirmPassword: '',
+        role: 'user',
+        agreeToTerms: false
+    });
+    const [signUpErrors, setSignUpErrors] = useState({});
+    const [showSignUpPassword, setShowSignUpPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+    // --- Login Handlers ---
+    const handleLoginSubmit = async (e) => {
+        e.preventDefault();
+        setLoginError('');
+        setIsLoggingIn(true);
+
+        const identifier = loginIdentifier.trim();
+        const password = loginPassword.trim();
+
+        // DEV SHORTCUTS: 1 = User with pass 1, 2 = Partner with pass 2
+        if (identifier === '1' && password === '1') {
+            const user = { fullName: 'Demo User', email: 'user@test.com', role: 'user', joinedAt: new Date().toISOString() };
+            localStorage.setItem('userData', JSON.stringify(user));
+            onLogin('user', user);
+            setIsLoggingIn(false);
+            return;
+        }
+        if (identifier === '2' && password === '2') {
+            const partner = { fullName: 'Demo Partner', email: 'partner@test.com', role: 'partner', joinedAt: new Date().toISOString() };
+            localStorage.setItem('userData', JSON.stringify(partner));
+            onLogin('partner', partner);
+            setIsLoggingIn(false);
+            return;
+        }
+        if (identifier === '3') {
+            const admin = { fullName: 'Demo Admin', email: 'admin@test.com', role: 'admin', joinedAt: new Date().toISOString() };
+            localStorage.setItem('userData', JSON.stringify(admin));
+            onLogin('admin', admin);
+            setIsLoggingIn(false);
+            return;
+        }
+
+        // 1. Local Registry Check (Check this FIRST for demo accounts)
+        const usersDB = JSON.parse(localStorage.getItem('usersDB') || '[]');
+        const localUser = usersDB.find(u =>
+            u.email.toLowerCase() === identifier.toLowerCase() ||
+            u.fullName.toLowerCase() === identifier.toLowerCase()
+        );
+
+        if (localUser) {
+            localStorage.setItem('userData', JSON.stringify(localUser));
+            onLogin(localUser.role, localUser);
+            setIsLoggingIn(false);
+            return;
+        }
+
+        const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(identifier);
+
+        // 2. Supabase Cloud Check
+        if (supabase) {
+            if (!isEmail) {
+                setLoginError('Please use a valid Email Address.');
+                setIsLoggingIn(false);
+                return;
+            }
+
+            try {
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: identifier,
+                    password: password
+                });
+
+                if (!error && data.user) {
+                    const { data: profile } = await supabase.from('profiles').select('*').eq('id', data.user.id).single();
+                    const role = profile?.role || 'user';
+                    onLogin(role, { ...profile, email: data.user.email });
+                    setIsLoggingIn(false);
+                    return;
+                }
+            } catch (err) {
+                console.error("Cloud login attempt failed");
+            }
+        }
+
+        // 4. Final Fallback (Allow local login if Supabase auth failed or wasn't available)
+        if (localUser) {
+            // Check if it's a test user or if we are in demo mode
+            localStorage.setItem('userData', JSON.stringify(localUser));
+            onLogin(localUser.role, localUser);
+            setIsLoggingIn(false);
+            return;
+        } else {
+            setLoginError('No account found or incorrect credentials.');
+        }
+        setIsLoggingIn(false);
+    };
+
+    // --- Sign-Up Handlers ---
+    const validateSignUp = () => {
+        const newErrors = {};
+        if (!signUpData.fullName.trim()) newErrors.fullName = 'Required';
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!signUpData.email || !emailRegex.test(signUpData.email)) newErrors.email = 'Invalid email';
+        if (signUpData.password.length < 8) {
+            newErrors.password = 'Min 8 chars';
+        } else if (!/(?=.*[a-z])/.test(signUpData.password)) {
+            newErrors.password = 'Need lowercase letter';
+        } else if (!/(?=.*[A-Z])/.test(signUpData.password)) {
+            newErrors.password = 'Need uppercase letter';
+        } else if (!/(?=.*\d)/.test(signUpData.password)) {
+            newErrors.password = 'Need a number';
+        } else if (!/(?=.*[@$!%*?&#])/.test(signUpData.password)) {
+            newErrors.password = 'Need special char (@$!%*?&#)';
+        }
+        if (signUpData.password !== signUpData.confirmPassword) newErrors.confirmPassword = 'No match';
+        if (!signUpData.agreeToTerms) newErrors.agreeToTerms = 'Required';
+        setSignUpErrors(newErrors);
+        return Object.keys(newErrors).length === 0;
+    };
+
+    const [verificationSent, setVerificationSent] = useState(false);
+
+    const handleSignUpSubmit = async (e) => {
+        e.preventDefault();
+        if (!validateSignUp()) return;
+
+        const newUser = {
+            fullName: signUpData.fullName,
+            email: signUpData.email,
+            phone: signUpData.phone,
+            // Password intentionally omitted for security - stored only in Supabase
+            role: signUpData.role,
+            joinedAt: new Date().toISOString(),
+            status: 'Active'
+        };
+
+        /* LEGACY LOCAL STORAGE - DISABLED FOR SECURITY
+        const usersDB = JSON.parse(localStorage.getItem('usersDB') || '[]');
+        if (!usersDB.some(u => u.email === signUpData.email)) {
+                usersDB.push(newUser);
+            localStorage.setItem('usersDB', JSON.stringify(usersDB));
+        }
+            */
+
+        if (!supabase) {
+            localStorage.setItem('userData', JSON.stringify(newUser));
+            onSignUp(signUpData.role, newUser);
+            return;
+        }
+
+        try {
+            const { data, error } = await supabase.auth.signUp({
+                email: signUpData.email,
+                password: signUpData.password,
+                options: { data: { full_name: signUpData.fullName, role: signUpData.role, phone: signUpData.phone } }
+            });
+            if (error) throw error;
+
+            // If email confirmation is ON, session will be null
+            if (data.user && !data.session) {
+                setVerificationSent(true);
+            } else if (data.session) {
+                // If email confirmation is OFF, we get a session immediately
+                onSignUp(signUpData.role, { full_name: signUpData.fullName, email: signUpData.email, phone: signUpData.phone, role: signUpData.role });
+            }
+        } catch (error) {
+            console.error("Sign Up Error:", error);
+
+            let displayError = error.message;
+            if (error.message.includes("Database error")) {
+                displayError = "System Update: We are upgrading our heritage registry. Please try again later.";
+                console.warn("DEVELOPER NOTE: This error is likely coming from a Postgres Trigger in Supabase (e.g., 'handle_new_user'). Check if the Trigger is failing to insert into the 'profiles' table, possibly due to RLS policies or missing columns.");
+            }
+
+            setSignUpErrors(prev => ({ ...prev, submit: displayError }));
+        }
+    };
+
+    const handleSignUpChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setSignUpData(prev => ({ ...prev, [name]: type === 'checkbox' ? checked : value }));
+    };
+
+    return (
+        <div className="min-h-screen mysore-main-bg flex items-center justify-center p-6 transition-colors duration-500 overflow-hidden font-sans">
+            {/* Background Decorative Blurs */}
+            <div className="absolute inset-0 z-0 opacity-40 dark:opacity-20 pointer-events-none">
+                <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#D4AF37]/20 rounded-full blur-[150px] animate-pulse"></div>
+                <div className="absolute bottom-[-20%] right-[-10%] w-[50%] h-[50%] bg-black/10 rounded-full blur-[150px]"></div>
+            </div>
+
+            {/* Main Auth Container */}
+            <div className={`relative w-full max-w-6xl h-full md:h-[85vh] bg-white/70 dark:bg-gray-900/70 backdrop-blur-3xl rounded-[2.5rem] md:rounded-[3.5rem] shadow-[0_50px_100px_-20px_rgba(0,0,0,0.4)] overflow-y-auto md:overflow-hidden transition-all duration-1000 border border-white/20 dark:border-gray-800`}>
+
+                {/* Visual Branding Overlay (The Sliding Part) */}
+                <div
+                    className={`absolute md:top-0 md:bottom-0 z-30 w-full md:w-[60%] h-64 md:h-full transition-all duration-1000 cubic-bezier(0.4, 0, 0.2, 1) transform overflow-hidden ${isSignUp ? 'translate-x-0 md:translate-x-[66.6%]' : 'translate-x-0 md:translate-x-0'
+                        }`}
+                >
+                    <div className="absolute inset-0 z-40 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+                    <img
+                        src="/src/assets/mysore-palace-daytime.jpg"
+                        alt="Mysore Palace"
+                        className={`absolute inset-0 w-full h-full object-cover transition-transform duration-[2500ms] ${isSignUp ? 'scale-125 md:translate-x-10' : 'scale-110 translate-x-0'}`}
+                    />
+
+                    <div className="absolute bottom-10 md:bottom-16 left-8 md:left-16 right-8 md:right-16 z-50 text-white">
+                        <p className="text-[10px] md:text-sm font-bold uppercase tracking-[0.6em] text-[#D4AF37] mb-2 md:mb-4 drop-shadow-md">Beyond the Palace</p>
+                        <h2 className="text-3xl md:text-5xl lg:text-7xl font-serif mb-4 md:mb-8 drop-shadow-lg leading-tight">Heritage <br />Explorer</h2>
+                        <p className="hidden md:block text-lg text-gray-200 max-w-md drop-shadow-md font-light leading-relaxed opacity-90">
+                            Uncover hidden gems, local artisans & authentic experiences that usually go unexplored.
+                        </p>
+                    </div>
+                </div>
+
+                {/* Form Panels Container */}
+                <div className="relative w-full h-full flex flex-col md:flex-row pt-64 md:pt-0">
+
+                    {/* LEFT PANEL (Sign Up) */}
+                    <div className={`w-full md:w-[40%] h-full flex items-center justify-center p-8 lg:p-16 transition-all duration-1000 ease-in-out ${isSignUp ? 'opacity-100 translate-x-0 z-20' : 'opacity-0 translate-x-20 pointer-events-none z-10'
+                        }`}>
+                        <div className="w-full max-w-sm">
+                            <div className="mb-10">
+                                <h1 className="text-4xl font-serif text-gray-900 dark:text-white mb-4">Create Account</h1>
+                            </div>
+
+                            {verificationSent ? (
+                                <div className="text-center space-y-8 animate-in fade-in zoom-in duration-500">
+                                    <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-3xl flex items-center justify-center mx-auto shadow-lg shadow-emerald-500/10">
+                                        <Mail className="w-10 h-10 text-emerald-600" />
+                                    </div>
+                                    <div className="space-y-4">
+                                        <h2 className="text-3xl font-serif text-gray-900 dark:text-white">Heritage Registry Active</h2>
+                                        <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed">
+                                            Your account has been recorded in the Supabase database.
+                                            A verification scroll was sent to <span className="font-bold text-gray-900 dark:text-white">{signUpData.email}</span>.
+                                        </p>
+                                        <div className="p-4 bg-emerald-50 dark:bg-emerald-900/10 rounded-2xl border border-emerald-100 dark:border-emerald-800/20">
+                                            <p className="text-[10px] text-emerald-600 dark:text-emerald-400 font-bold uppercase tracking-widest">Success</p>
+                                            <p className="text-[10px] text-emerald-500 font-medium">Data preserved. You may proceed to explore while verification is pending.</p>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <button
+                                            onClick={() => {
+                                                const newUser = {
+                                                    fullName: signUpData.fullName,
+                                                    email: signUpData.email,
+                                                    phone: signUpData.phone,
+                                                    role: signUpData.role,
+                                                    joinedAt: new Date().toISOString(),
+                                                };
+                                                localStorage.setItem('userData', JSON.stringify(newUser));
+                                                onSignUp(signUpData.role, newUser);
+                                            }}
+                                            className="w-full py-5 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-xl hover:scale-[1.02] transition-all"
+                                        >
+                                            Proceed to Dashboard
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsSignUp(false);
+                                                setVerificationSent(false);
+                                            }}
+                                            className="w-full py-5 border-2 border-gray-100 dark:border-gray-800 rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] text-gray-400 hover:text-gray-900 dark:hover:text-white transition-all"
+                                        >
+                                            Sign In Manually
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <>
+                                    <form onSubmit={handleSignUpSubmit} className="space-y-4">
+                                        <div className="flex gap-4 mb-8">
+                                            {['user', 'partner'].map(r => (
+                                                <button
+                                                    key={r}
+                                                    type="button"
+                                                    onClick={() => setSignUpData(prev => ({ ...prev, role: r }))}
+                                                    className={`flex-1 flex items-center justify-center gap-3 py-4 px-4 rounded-2xl border transition-all duration-300 ${signUpData.role === r
+                                                        ? 'border-[#D4AF37] text-[#D4AF37] bg-[#D4AF37]/5 ring-1 ring-[#D4AF37]/20 shadow-sm'
+                                                        : 'border-gray-200 dark:border-gray-800 text-gray-400 hover:border-gray-300 dark:hover:border-gray-700 bg-white dark:bg-transparent'
+                                                        }`}
+                                                >
+                                                    {r === 'user' ? <User size={18} strokeWidth={2} /> : <Handshake size={18} strokeWidth={2} />}
+                                                    <span className="text-xs font-bold uppercase tracking-widest">{r}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        <div className="space-y-4">
+                                            <div className="relative group">
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
+                                                <input type="text" id="signup-fullname" name="fullName" value={signUpData.fullName} onChange={handleSignUpChange} placeholder="Full Name" autoComplete="name" className={`w-full pl-12 pr-4 py-4 border ${signUpErrors.fullName ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`} />
+                                                {signUpErrors.fullName && <p className="text-[10px] text-red-500 font-bold mt-1 px-4">{signUpErrors.fullName}</p>}
+                                            </div>
+                                            <div className="relative group">
+                                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
+                                                <input type="email" id="signup-email" name="email" value={signUpData.email} onChange={handleSignUpChange} placeholder="Email" autoComplete="email" className={`w-full pl-12 pr-4 py-4 border ${signUpErrors.email ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`} />
+                                                {signUpErrors.email && <p className="text-[10px] text-red-500 font-bold mt-1 px-4">{signUpErrors.email}</p>}
+                                            </div>
+                                            <div className="relative group">
+                                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
+                                                <input type="tel" id="signup-phone" name="phone" value={signUpData.phone} onChange={handleSignUpChange} placeholder="Phone Number" autoComplete="tel" className="w-full pl-12 pr-4 py-4 border border-gray-100 dark:border-gray-800 rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all" />
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="relative">
+                                                    <input
+                                                        type={showSignUpPassword ? "text" : "password"}
+                                                        id="signup-password"
+                                                        name="password"
+                                                        value={signUpData.password}
+                                                        onChange={handleSignUpChange}
+                                                        placeholder="Password"
+                                                        autoComplete="new-password"
+                                                        className={`w-full pl-5 pr-10 py-4 border ${signUpErrors.password ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowSignUpPassword(!showSignUpPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#D4AF37] transition-colors"
+                                                    >
+                                                        {showSignUpPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                    </button>
+                                                    {signUpErrors.password && <p className="text-[10px] text-red-500 font-bold mt-1 px-1">{signUpErrors.password}</p>}
+                                                </div>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showConfirmPassword ? "text" : "password"}
+                                                        id="signup-confirm-password"
+                                                        name="confirmPassword"
+                                                        value={signUpData.confirmPassword}
+                                                        onChange={handleSignUpChange}
+                                                        placeholder="Confirm"
+                                                        autoComplete="new-password"
+                                                        className={`w-full pl-5 pr-10 py-4 border ${signUpErrors.confirmPassword ? 'border-red-500' : 'border-gray-100 dark:border-gray-800'} rounded-2xl bg-gray-50 dark:bg-gray-800/50 text-sm focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all`}
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#D4AF37] transition-colors"
+                                                    >
+                                                        {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                                                    </button>
+                                                    {signUpErrors.confirmPassword && <p className="text-[10px] text-red-500 font-bold mt-1 px-1">{signUpErrors.confirmPassword}</p>}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex items-center gap-3 px-2 py-2">
+                                                <input
+                                                    type="checkbox"
+                                                    name="agreeToTerms"
+                                                    id="agreeToTerms"
+                                                    checked={signUpData.agreeToTerms}
+                                                    onChange={handleSignUpChange}
+                                                    className="w-4 h-4 rounded border-gray-300 text-[#D4AF37] focus:ring-[#D4AF37]"
+                                                />
+                                                <label htmlFor="agreeToTerms" className={`text-[10px] font-bold uppercase tracking-widest ${signUpErrors.agreeToTerms ? 'text-red-500' : 'text-gray-400'}`}>
+                                                    I agree to the Heritage Protocol
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        {signUpErrors.submit && (
+                                            <p className="text-red-500 text-[10px] font-black text-center uppercase tracking-widest bg-red-50 dark:bg-red-900/10 py-4 rounded-2xl border border-red-100 dark:border-red-900/20">
+                                                {signUpErrors.submit}
+                                            </p>
+                                        )}
+
+                                        <button type="submit" className="w-full py-5 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] shadow-2xl hover:scale-[1.02] active:scale-[0.98] transition-all mt-6 shadow-black/20">
+                                            Create Heritage ID
+                                        </button>
+                                    </form>
+
+                                    <p className="mt-12 text-center text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">
+                                        Already a resident? {' '}
+                                        <button onClick={() => setIsSignUp(false)} className="text-[#D4AF37] ml-2 hover:underline">Log In</button>
+                                    </p>
+                                </>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* RIGHT PANEL (Login) */}
+                    <div className={`w-full md:w-[40%] h-auto md:h-full ml-auto flex items-center justify-center p-8 lg:p-16 transition-all duration-1000 ease-in-out ${!isSignUp ? 'opacity-100 translate-x-0 z-20' : 'opacity-0 -translate-x-20 pointer-events-none z-10'
+                        }`}>
+                        <div className="w-full max-w-sm">
+                            <div className="mb-12 text-center md:text-left">
+                                <div className="flex items-center justify-center md:justify-start mb-10 group cursor-default">
+                                    <span className="text-5xl font-serif text-black dark:text-white tracking-tighter group-hover:tracking-normal transition-all duration-700">Mysuru</span>
+                                    <span className="text-5xl font-bold text-[#D4AF37] ml-2">Marga</span>
+                                </div>
+                                <h1 className="text-4xl font-serif text-gray-900 dark:text-white mb-3">Welcome Back</h1>
+                                <p className="text-gray-500 dark:text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">Access the heritage core</p>
+                            </div>
+
+                            <form onSubmit={handleLoginSubmit} className="space-y-6">
+                                <div className="space-y-5">
+                                    <div className="relative group">
+                                        <Mail className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#D4AF37] transition-colors" />
+                                        <input
+                                            type="text"
+                                            id="login-email"
+                                            name="email"
+                                            value={loginIdentifier}
+                                            onChange={(e) => setLoginIdentifier(e.target.value)}
+                                            placeholder="Email Address"
+                                            autoComplete="email"
+                                            className="w-full pl-16 pr-6 py-6 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all shadow-inner"
+                                            required
+                                        />
+                                    </div>
+                                    <div className="relative group">
+                                        <Lock className="absolute left-6 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5 group-focus-within:text-[#D4AF37] transition-colors" />
+                                        <input
+                                            type={showLoginPassword ? 'text' : 'password'}
+                                            id="login-password"
+                                            name="password"
+                                            value={loginPassword}
+                                            onChange={(e) => setLoginPassword(e.target.value)}
+                                            placeholder="Password"
+                                            autoComplete="current-password"
+                                            className="w-full pl-16 pr-16 py-6 border border-gray-100 dark:border-gray-800 rounded-[2.5rem] bg-gray-50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all shadow-inner"
+                                            required
+                                        />
+                                        <button type="button" onClick={() => setShowLoginPassword(!showLoginPassword)} className="absolute right-6 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#D4AF37] transition-colors">
+                                            {showLoginPassword ? <EyeOff size={24} /> : <Eye size={24} />}
+                                        </button>
+                                    </div>
+                                </div>
+
+                                {loginError && <p className="text-red-500 text-[10px] font-black text-center uppercase tracking-widest bg-red-50 dark:bg-red-900/10 py-4 rounded-2xl border border-red-100 dark:border-red-900/20">{loginError}</p>}
+
+                                <button
+                                    type="submit"
+                                    disabled={isLoggingIn}
+                                    className="w-full py-6 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-[2.5rem] font-black text-[11px] uppercase tracking-[0.4em] shadow-[0_25px_50px_-15px_rgba(212,175,55,0.4)] hover:scale-[1.03] active:scale-[0.98] transition-all duration-500 mt-4 flex items-center justify-center"
+                                >
+                                    {isLoggingIn ? (
+                                        <div className="w-5 h-5 border-2 border-white dark:border-black border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        'Enter The Gates'
+                                    )}
+                                </button>
+                            </form>
+
+                            <p className="mt-16 text-center text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">
+                                New to the City? {' '}
+                                <button onClick={() => setIsSignUp(true)} className="text-[#D4AF37] ml-2 hover:underline">Register Now</button>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+
+export const TravaAI = ({ onBack }) => {
+    const [mode, setMode] = useState('chat'); // 'chat', 'planner', or 'budget'
+    const [headerHidden, setHeaderHidden] = useState(false);
+    const [showInviteModal, setShowInviteModal] = useState(false);
+    const [inviteName, setInviteName] = useState('');
+    const [inviteCopied, setInviteCopied] = useState(false);
+    const lastScrollY = useRef(0);
+    const contentRef = useRef(null);
+
+    // Budget Splitter State
+    const [friends, setFriends] = useState(() => {
+        const saved = localStorage.getItem('trip_friends');
+        return saved ? JSON.parse(saved) : ['You'];
+    });
+    const [expenses, setExpenses] = useState(() => {
+        const saved = localStorage.getItem('trip_expenses');
+        return saved ? JSON.parse(saved) : [];
+    });
+    const [newFriend, setNewFriend] = useState('');
+    const [newExpense, setNewExpense] = useState({ description: '', amount: '', paidBy: 'You', splitAmong: [] });
+    const [showAddExpense, setShowAddExpense] = useState(false);
+
+    // Persist budget data
+    useEffect(() => {
+        localStorage.setItem('trip_friends', JSON.stringify(friends));
+    }, [friends]);
+    useEffect(() => {
+        localStorage.setItem('trip_expenses', JSON.stringify(expenses));
+    }, [expenses]);
+
+    const handleInvite = () => {
+        const inviteLink = `${window.location.origin}?invite=trip&from=${encodeURIComponent(inviteName || 'A Friend')}`;
+        if (navigator.share) {
+            navigator.share({
+                title: 'Join my Mysuru Trip!',
+                text: `${inviteName || 'Hey'}, you\'re invited to plan a trip to Mysuru together on Trava AI!`,
+                url: inviteLink
+            }).catch(() => { });
+        } else {
+            navigator.clipboard.writeText(inviteLink);
+            setInviteCopied(true);
+            setTimeout(() => setInviteCopied(false), 2500);
+        }
+    };
+
+    // Scroll-aware header: hide on scroll down, show on scroll up
+    useEffect(() => {
+        const container = contentRef.current;
+        if (!container) return;
+        let ticking = false;
+
+        const handleScroll = () => {
+            if (ticking) return;
+            ticking = true;
+            requestAnimationFrame(() => {
+                const currentY = container.scrollTop;
+                const delta = currentY - lastScrollY.current;
+                // Only toggle if scrolled more than 10px to avoid jitter
+                if (delta > 10 && currentY > 60) {
+                    setHeaderHidden(true);
+                } else if (delta < -10) {
+                    setHeaderHidden(false);
+                }
+                lastScrollY.current = currentY;
+                ticking = false;
+            });
+        };
+
+        container.addEventListener('scroll', handleScroll, { passive: true });
+        return () => container.removeEventListener('scroll', handleScroll);
+    }, [mode]);
+
+    const [formData, setFormData] = useState({
+        tripName: '',
+        startingFrom: '',
+        destinations: '',
+        travelers: '1',
+        theme: 'Heritage',
+        persona: 'Family',
+        interests: [],
+        startDate: '',
+        endDate: '',
+        pace: 'Balanced',
+        arrivalTime: '',
+        departureTime: '',
+        budget: 'Moderate',
+        accommodation: 'Comfort',
+        diet: 'ALL',
+        transport: 'Personal',
+        vehicleType: 'Car',
+        specialRequests: ''
+    });
+
+    const [messages, _setMessages] = useState([
+        { role: 'assistant', content: 'Namaskara! I am Trava AI, your personal Mysuru travel companion. How can I help you explore the city today?' }
+    ]);
+    const [input, setInput] = useState('');
+    const [isTravaLoading, setIsTravaLoading] = useState(false);
+
+    const toggleInterest = (interest) => {
+        setFormData(prev => ({
+            ...prev,
+            interests: prev.interests.includes(interest)
+                ? prev.interests.filter(i => i !== interest)
+                : [...prev.interests, interest]
+        }));
+    };
+
+    const handleTravaMessage = async (msgOverride) => {
+        const msg = typeof msgOverride === 'string' ? msgOverride : input;
+        if (!msg.trim() || isTravaLoading) return;
+
+        const userMessage = msg.trim();
+        setInput('');
+
+        _setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+        setIsTravaLoading(true);
+
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `You are Trava AI, an intelligent personal travel companion for Mysuru (Mysore). Be very helpful, knowledgeable, and suggest highly practical travel tips, itineraries, and facts based on the city's rich heritage. Format your output clearly. User query: ${userMessage}`;
+            const result = await model.generateContent(prompt);
+            const responseText = result.response.text();
+            _setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+        } catch (error) {
+            console.error("Trava AI chat error:", error);
+            _setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I am having trouble fetching the information right now." }]);
+        } finally {
+            setIsTravaLoading(false);
+        }
+    };
+
+    const generatePlanner = async () => {
+        setIsTravaLoading(true);
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const prompt = `Generate a detailed Mysuru travel itinerary based on these user preferences:
+            Theme/Identity: ${formData.tripName || 'My Mysuru Trip'}
+            Starting City: ${formData.startingFrom || 'Anywhere'}
+            Specific Places Interested: ${formData.destinations || 'Any'}
+            Travelers Count: ${formData.travelers}
+            Core Theme: ${formData.theme}
+            Persona: ${formData.persona}
+            Interests: ${formData.interests.join(', ') || 'General Sightseeing'}
+            Dates: from ${formData.startDate || 'flexible'} to ${formData.endDate || 'flexible'}
+            Pace: ${formData.pace}
+            Timings: Arrival at ${formData.arrivalTime || 'flexible'}, Departure at ${formData.departureTime || 'flexible'}
+            Budget: ${formData.budget}
+            Accommodation Type: ${formData.accommodation}
+            Dietary Preference: ${formData.diet}
+            Transport: ${formData.transport} (${formData.vehicleType})
+            Special Requests: ${formData.specialRequests || 'None'}
+
+            Please provide a highly structured, day-by-day (or logical if dates are flexible) itinerary that is directly aligned with these choices. Make it immersive, accurate, practical, and highly detailed. Incorporate local Mysuru culture. Give it a royal, welcoming introductory tone.`;
+
+            const result = await model.generateContent(prompt);
+            const responseText = result.response.text();
+            _setMessages(prev => [...prev, { role: 'assistant', content: `Here is your customized Heritage ID and Itinerary:\n\n${responseText}` }]);
+            setMode('chat');
+        } catch (error) {
+            console.error("Trava AI planner error:", error);
+            _setMessages(prev => [...prev, { role: 'assistant', content: "Sorry, I couldn't generate the itinerary at this time. Please try again or check your connection." }]);
+            setMode('chat');
+        } finally {
+            setIsTravaLoading(false);
+        }
+    };
+
+    const renderChat = () => (
+        <div className="flex flex-col h-full animate-in fade-in duration-700">
+            <div className="flex-1 overflow-y-auto px-8 md:px-12 py-8 space-y-6 custom-scrollbar pb-32">
+                {messages.map((m, i) => (
+                    <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'} animate-in slide-in-from-bottom-2 duration-500`}>
+                        <div className={`relative max-w-[80%] md:max-w-[70%] p-5 rounded-3xl ${m.role === 'user'
+                            ? 'bg-[#D4AF37] text-black shadow-xl shadow-amber-900/10 rounded-tr-none font-bold'
+                            : 'bg-white dark:bg-gray-800 border border-[#D4AF37]/20 dark:border-gray-700 text-gray-800 dark:text-gray-200 shadow-sm rounded-tl-none font-medium'}`}>
+                            <p className="text-sm md:text-base leading-relaxed whitespace-pre-wrap">{m.content}</p>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 z-20">
+                <div className="max-w-4xl mx-auto bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-sm border border-gray-100 dark:border-gray-800">
+                    <div className="flex gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide">
+                        {["Tell me about Somnathpur", "Best period to visit?", "Top 5 local eateries"].map(s => (
+                            <button key={s} onClick={() => handleTravaMessage(s)} className="whitespace-nowrap px-5 py-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-full text-[10px] font-black uppercase tracking-widest text-gray-500 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all transform hover:scale-105 active:scale-95 disabled:opacity-50" disabled={isTravaLoading}>
+                                {s}
+                            </button>
+                        ))}
+                    </div>
+                    <div className="relative group">
+                        <input
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    handleTravaMessage();
+                                }
+                            }}
+                            disabled={isTravaLoading}
+                            placeholder={isTravaLoading ? "Trava AI is thinking..." : "Type your curiosity about Mysuru..."}
+                            className="w-full bg-white dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 rounded-2xl py-5 pl-7 pr-16 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#D4AF37]/30 transition-all placeholder-gray-400 font-medium disabled:opacity-60"
+                        />
+                        <button
+                            onClick={() => handleTravaMessage()}
+                            disabled={isTravaLoading || !input.trim()}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 w-12 h-12 bg-black dark:bg-[#D4AF37] rounded-xl flex items-center justify-center text-white dark:text-black shadow-md hover:scale-110 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100">
+                            {isTravaLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Send size={20} />}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const addFriend = () => {
+        if (newFriend.trim() && !friends.includes(newFriend.trim())) {
+            setFriends(prev => [...prev, newFriend.trim()]);
+            setNewFriend('');
+        }
+    };
+
+    const addExpense = () => {
+        if (!newExpense.description.trim() || !newExpense.amount || Number(newExpense.amount) <= 0) return;
+        const splitList = newExpense.splitAmong.length > 0 ? newExpense.splitAmong : friends;
+        setExpenses(prev => [...prev, {
+            id: Date.now(),
+            description: newExpense.description,
+            amount: Number(newExpense.amount),
+            paidBy: newExpense.paidBy,
+            splitAmong: splitList,
+            date: new Date().toLocaleDateString()
+        }]);
+        setNewExpense({ description: '', amount: '', paidBy: 'You', splitAmong: [] });
+        setShowAddExpense(false);
+    };
+
+    const deleteExpense = (id) => {
+        setExpenses(prev => prev.filter(e => e.id !== id));
+    };
+
+    const getSettlements = () => {
+        const balances = {};
+        friends.forEach(f => balances[f] = 0);
+
+        expenses.forEach(exp => {
+            const perPerson = exp.amount / exp.splitAmong.length;
+            balances[exp.paidBy] = (balances[exp.paidBy] || 0) + exp.amount;
+            exp.splitAmong.forEach(person => {
+                balances[person] = (balances[person] || 0) - perPerson;
+            });
+        });
+
+        const debtors = [];
+        const creditors = [];
+        Object.entries(balances).forEach(([person, balance]) => {
+            if (balance < -0.01) debtors.push({ person, amount: -balance });
+            else if (balance > 0.01) creditors.push({ person, amount: balance });
+        });
+
+        debtors.sort((a, b) => b.amount - a.amount);
+        creditors.sort((a, b) => b.amount - a.amount);
+
+        const settlements = [];
+        let i = 0, j = 0;
+        while (i < debtors.length && j < creditors.length) {
+            const amount = Math.min(debtors[i].amount, creditors[j].amount);
+            if (amount > 0.01) {
+                settlements.push({ from: debtors[i].person, to: creditors[j].person, amount: amount.toFixed(0) });
+            }
+            debtors[i].amount -= amount;
+            creditors[j].amount -= amount;
+            if (debtors[i].amount < 0.01) i++;
+            if (creditors[j].amount < 0.01) j++;
+        }
+        return settlements;
+    };
+
+    const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+
+    const renderBudgetSplitter = () => (
+        <div className="px-6 md:px-12 pt-8 pb-40 space-y-8 animate-in slide-in-from-bottom-4 duration-700">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="p-5 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2rem] border border-white dark:border-gray-800 shadow-lg">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Total Spent</p>
+                    <p className="text-3xl font-serif text-gray-900 dark:text-white">₹{totalExpenses.toLocaleString()}</p>
+                </div>
+                <div className="p-5 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2rem] border border-white dark:border-gray-800 shadow-lg">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Per Person</p>
+                    <p className="text-3xl font-serif text-gray-900 dark:text-white">₹{friends.length > 0 ? (totalExpenses / friends.length).toFixed(0) : 0}</p>
+                </div>
+                <div className="p-5 bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2rem] border border-white dark:border-gray-800 shadow-lg col-span-2 md:col-span-1">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Trip Members</p>
+                    <p className="text-3xl font-serif text-gray-900 dark:text-white">{friends.length}</p>
+                </div>
+            </div>
+
+            {/* Friends Section */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-6 md:p-8 rounded-[2.5rem] border border-white dark:border-gray-800 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-[#D4AF37]/10 rounded-2xl">
+                            <Users className="w-5 h-5 text-[#D4AF37]" />
+                        </div>
+                        <h3 className="text-xl font-serif text-gray-900 dark:text-white">Trip Members</h3>
+                    </div>
+                </div>
+                <div className="flex flex-wrap gap-3 mb-4">
+                    {friends.map((f, i) => (
+                        <div key={i} className="flex items-center gap-2 px-4 py-2.5 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#D4AF37] to-[#B8962F] flex items-center justify-center text-[10px] font-black text-black">
+                                {f.charAt(0).toUpperCase()}
+                            </div>
+                            <span className="text-sm font-bold text-gray-700 dark:text-gray-300">{f}</span>
+                            {f !== 'You' && (
+                                <button onClick={() => setFriends(prev => prev.filter(p => p !== f))} className="ml-1 text-gray-300 hover:text-red-500 transition-colors">
+                                    <X size={14} />
+                                </button>
+                            )}
+                        </div>
+                    ))}
+                </div>
+                <div className="flex gap-3">
+                    <input
+                        value={newFriend}
+                        onChange={(e) => setNewFriend(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && addFriend()}
+                        placeholder="Add friend's name..."
+                        className="flex-1 bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl py-3.5 px-5 text-sm font-medium focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
+                    />
+                    <button onClick={addFriend} className="px-6 py-3.5 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 active:scale-95 transition-all flex items-center gap-2">
+                        <Plus size={16} /> Add
+                    </button>
+                </div>
+            </div>
+
+            {/* Add Expense */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-6 md:p-8 rounded-[2.5rem] border border-white dark:border-gray-800 shadow-xl">
+                <div className="flex items-center justify-between mb-6">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-emerald-100 dark:bg-emerald-900/20 rounded-2xl">
+                            <IndianRupee className="w-5 h-5 text-emerald-600" />
+                        </div>
+                        <h3 className="text-xl font-serif text-gray-900 dark:text-white">Expenses</h3>
+                    </div>
+                    <button onClick={() => setShowAddExpense(!showAddExpense)} className="px-5 py-2.5 bg-[#D4AF37]/10 text-[#D4AF37] rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-[#D4AF37]/20 transition-all flex items-center gap-2">
+                        <Plus size={14} /> {showAddExpense ? 'Cancel' : 'New Expense'}
+                    </button>
+                </div>
+
+                {showAddExpense && (
+                    <div className="mb-6 p-5 bg-gray-50 dark:bg-gray-800/50 rounded-[2rem] border border-gray-100 dark:border-gray-700 space-y-4 animate-in slide-in-from-top-2 duration-300">
+                        <input
+                            value={newExpense.description}
+                            onChange={(e) => setNewExpense(p => ({ ...p, description: e.target.value }))}
+                            placeholder="What was it for? e.g., Palace tickets, lunch..."
+                            className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl py-4 px-5 text-sm font-medium focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
+                        />
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2 mb-1.5 block">Amount (₹)</label>
+                                <input
+                                    type="number"
+                                    value={newExpense.amount}
+                                    onChange={(e) => setNewExpense(p => ({ ...p, amount: e.target.value }))}
+                                    placeholder="0"
+                                    className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl py-4 px-5 text-sm font-bold focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2 mb-1.5 block">Paid By</label>
+                                <select
+                                    value={newExpense.paidBy}
+                                    onChange={(e) => setNewExpense(p => ({ ...p, paidBy: e.target.value }))}
+                                    className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl py-4 px-5 text-sm font-bold appearance-none focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all cursor-pointer"
+                                >
+                                    {friends.map(f => <option key={f} value={f}>{f}</option>)}
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="text-[9px] font-black uppercase tracking-widest text-gray-400 ml-2 mb-2 block">Split Among (leave empty for everyone)</label>
+                            <div className="flex flex-wrap gap-2">
+                                {friends.map(f => (
+                                    <button
+                                        key={f}
+                                        onClick={() => {
+                                            setNewExpense(p => ({
+                                                ...p,
+                                                splitAmong: p.splitAmong.includes(f)
+                                                    ? p.splitAmong.filter(x => x !== f)
+                                                    : [...p.splitAmong, f]
+                                            }));
+                                        }}
+                                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border active:scale-95 ${newExpense.splitAmong.includes(f)
+                                            ? 'bg-[#D4AF37] text-black border-[#D4AF37]'
+                                            : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-200 dark:border-gray-700 hover:border-[#D4AF37]'
+                                            }`}
+                                    >
+                                        {f}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                        <button onClick={addExpense} className="w-full py-4 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-95 transition-all">
+                            Add Expense
+                        </button>
+                    </div>
+                )}
+
+                {/* Expense List */}
+                <div className="space-y-3">
+                    {expenses.length === 0 ? (
+                        <div className="py-12 text-center">
+                            <IndianRupee className="w-10 h-10 text-gray-200 mx-auto mb-3" />
+                            <p className="text-sm text-gray-400 font-medium">No expenses yet. Add your first one!</p>
+                        </div>
+                    ) : (
+                        expenses.map(exp => (
+                            <div key={exp.id} className="flex items-center justify-between p-4 bg-white dark:bg-gray-800/50 rounded-2xl border border-gray-100 dark:border-gray-700 group">
+                                <div className="flex items-center gap-3 flex-1 min-w-0">
+                                    <div className="w-10 h-10 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center shrink-0">
+                                        <IndianRupee className="w-4 h-4 text-emerald-600" />
+                                    </div>
+                                    <div className="min-w-0">
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white truncate">{exp.description}</p>
+                                        <p className="text-[10px] text-gray-400 font-medium">{exp.paidBy} paid · {exp.date} · Split with {exp.splitAmong.length}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3 shrink-0">
+                                    <span className="text-lg font-black text-gray-900 dark:text-white">₹{exp.amount.toLocaleString()}</span>
+                                    <button onClick={() => deleteExpense(exp.id)} className="opacity-0 group-hover:opacity-100 p-1.5 text-gray-300 hover:text-red-500 rounded-lg transition-all">
+                                        <Trash2 size={14} />
+                                    </button>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
+            {/* Settlements */}
+            {expenses.length > 0 && (
+                <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-6 md:p-8 rounded-[2.5rem] border border-white dark:border-gray-800 shadow-xl">
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="p-2.5 bg-amber-100 dark:bg-amber-900/20 rounded-2xl">
+                            <TrendingUp className="w-5 h-5 text-amber-600" />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-serif text-gray-900 dark:text-white">Settlements</h3>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">Who owes whom</p>
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                        {getSettlements().length === 0 ? (
+                            <div className="py-8 text-center">
+                                <Check className="w-10 h-10 text-emerald-400 mx-auto mb-2" />
+                                <p className="text-sm text-gray-500 font-bold">All settled up! 🎉</p>
+                            </div>
+                        ) : (
+                            getSettlements().map((s, i) => (
+                                <div key={i} className="flex items-center gap-4 p-4 bg-amber-50/50 dark:bg-amber-900/10 rounded-2xl border border-amber-100/50 dark:border-amber-800/30">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-red-400 to-red-500 flex items-center justify-center text-[10px] font-black text-white">
+                                        {s.from.charAt(0)}
+                                    </div>
+                                    <div className="flex-1">
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white">
+                                            <span className="text-red-500">{s.from}</span> owes <span className="text-emerald-600">{s.to}</span>
+                                        </p>
+                                    </div>
+                                    <span className="text-lg font-black text-[#D4AF37]">₹{Number(s.amount).toLocaleString()}</span>
+                                </div>
+                            ))
+                        )}
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+
+    const renderPlanner = () => (
+        <div className="px-8 md:px-12 pt-10 pb-40 space-y-12 animate-in slide-in-from-bottom-4 duration-1000">
+            {/* Trip Essentials Card */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white dark:border-gray-800 shadow-xl space-y-8">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-amber-100 dark:bg-[#D4AF37]/10 rounded-2xl shadow-inner">
+                        <Compass className="w-6 h-6 text-[#D4AF37]" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-serif text-gray-900 dark:text-white">Trip Essentials</h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] mt-1">Foundational details for your visit</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Trip Identity</label>
+                        <div className="relative group">
+                            <Tag className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
+                            <input value={formData.tripName} onChange={e => setFormData({ ...formData, tripName: e.target.value })} placeholder="e.g., Summer in Royal City" className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-medium focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all shadow-sm" />
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Origin City</label>
+                        <div className="relative group">
+                            <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
+                            <input value={formData.startingFrom} onChange={e => setFormData({ ...formData, startingFrom: e.target.value })} placeholder="e.g., Bangalore / Delhi" className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-medium focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all shadow-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Specific Destinations</label>
+                        <div className="relative group">
+                            <Landmark className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
+                            <input value={formData.destinations} onChange={e => setFormData({ ...formData, destinations: e.target.value })} placeholder="Srigiripura, Devaraja Market..." className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-medium focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all shadow-sm" />
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Traveling Party Size</label>
+                        <div className="relative group">
+                            <Users className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
+                            <input type="number" min="1" value={formData.travelers} onChange={e => setFormData({ ...formData, travelers: e.target.value })} className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-bold focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all shadow-sm" />
+                        </div>
+                    </div>
+                </div>
+
+                <div className="space-y-3">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Core Heritage Theme</label>
+                    <div className="relative group">
+                        <Sparkles className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 group-focus-within:text-[#D4AF37] transition-colors" />
+                        <select value={formData.theme} onChange={e => setFormData({ ...formData, theme: e.target.value })} className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-bold appearance-none focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all cursor-pointer shadow-sm">
+                            <option>Heritage</option>
+                            <option>Nature</option>
+                            <option>Adventure</option>
+                            <option>Peace</option>
+                        </select>
+                        <ChevronRight className="absolute right-6 top-1/2 -translate-y-1/2 rotate-90 text-gray-400" size={18} />
+                    </div>
+                </div>
+            </div>
+
+            {/* Persona & Interests Card */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white dark:border-gray-800 shadow-xl space-y-10">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-amber-100 dark:bg-amber-900/30 rounded-2xl">
+                        <User className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-serif text-gray-900 dark:text-white">Persona & Interests</h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] mt-1">Help Trava understand your style</p>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Who's Coming Along?</label>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {["Solo", "Couple", "Family", "Friends"].map(p => (
+                            <button key={p} onClick={() => setFormData({ ...formData, persona: p })} className={`py-4 rounded-3xl text-xs font-black uppercase tracking-widest transition-all border transform active:scale-95 ${formData.persona === p ? 'bg-[#D4AF37] text-black border-[#D4AF37] shadow-xl shadow-amber-900/20 scale-105' : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-100 dark:border-gray-700 hover:border-[#D4AF37] hover:text-[#D4AF37]'}`}>
+                                {p}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-6 pt-4">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Deep Dive (Select Multiple)</label>
+                    <div className="flex gap-3 flex-wrap">
+                        {["Heritage", "Nature", "Food", "Spiritual", "Arts", "Shopping", "Silk Weaving", "Yoga", "Palaces"].map(i => (
+                            <button key={i} onClick={() => toggleInterest(i)} className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border transform active:scale-95 ${formData.interests.includes(i) ? 'bg-[#D4AF37] text-white border-[#D4AF37] shadow-lg shadow-amber-900/10' : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-100 dark:border-gray-700 hover:border-[#D4AF37] hover:text-[#D4AF37]'}`}>
+                                {i}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Timeline & Pace Card */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white dark:border-gray-800 shadow-xl space-y-10">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-amber-100 dark:bg-[#D4AF37]/10 rounded-2xl">
+                        <Calendar className="w-6 h-6 text-[#D4AF37]" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-serif text-gray-900 dark:text-white">Timeline & Pace</h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] mt-1">Calendar & intensity of the trip</p>
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Start Date</label>
+                        <input type="date" value={formData.startDate} onChange={e => setFormData({ ...formData, startDate: e.target.value })} className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-5 rounded-[1.5rem] text-sm font-bold focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all shadow-sm" />
+                    </div>
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">End Date</label>
+                        <input type="date" value={formData.endDate} onChange={e => setFormData({ ...formData, endDate: e.target.value })} className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-5 rounded-[1.5rem] text-sm font-bold focus:ring-4 focus:ring-amber-500/10 outline-none transition-all shadow-sm" />
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Exploration Pace</label>
+                    <div className="flex gap-4">
+                        {["Relaxed", "Balanced", "Intense"].map(p => (
+                            <button key={p} onClick={() => setFormData({ ...formData, pace: p })} className={`flex-1 py-5 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all border transform active:scale-95 ${formData.pace === p ? 'bg-black dark:bg-[#D4AF37] text-white dark:text-black border-black dark:border-[#D4AF37] shadow-xl' : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-100 dark:border-gray-700 hover:border-black dark:hover:border-[#D4AF37]'}`}>
+                                {p}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-4">
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Arrival Time</label>
+                        <div className="relative group">
+                            <Clock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input type="time" value={formData.arrivalTime} onChange={e => setFormData({ ...formData, arrivalTime: e.target.value })} className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-bold focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all shadow-sm" />
+                        </div>
+                    </div>
+                    <div className="space-y-3">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Departure Time</label>
+                        <div className="relative group">
+                            <Clock className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                            <input type="time" value={formData.departureTime} onChange={e => setFormData({ ...formData, departureTime: e.target.value })} className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 pl-14 pr-6 py-5 rounded-[1.5rem] text-sm font-bold focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all shadow-sm" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Budget & Comfort Card */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white dark:border-gray-800 shadow-xl space-y-10">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-amber-100 dark:bg-[#D4AF37]/10 rounded-2xl">
+                        <Database className="w-6 h-6 text-[#D4AF37]" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-serif text-gray-900 dark:text-white">Budget & Comfort</h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] mt-1">Resource allocation & stay type</p>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Investment Level</label>
+                    <div className="flex gap-4">
+                        {["Budget", "Moderate", "Luxury"].map(b => (
+                            <button key={b} onClick={() => setFormData({ ...formData, budget: b })} className={`flex-1 py-5 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all border transform active:scale-95 ${formData.budget === b ? 'bg-black dark:bg-[#D4AF37] text-white dark:text-black border-black dark:border-[#D4AF37] shadow-xl' : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-100 dark:border-gray-700 hover:border-black dark:hover:border-[#D4AF37]'}`}>
+                                {b}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Stay Preference</label>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                        {["Hostel", "Homestay", "Comfort", "Grandeur"].map(a => (
+                            <button key={a} onClick={() => setFormData({ ...formData, accommodation: a })} className={`py-5 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all border transform active:scale-95 ${formData.accommodation === a ? 'bg-black dark:bg-[#D4AF37] text-white dark:text-black border-black dark:border-[#D4AF37] shadow-lg' : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-100 dark:border-gray-700 hover:border-black dark:hover:border-[#D4AF37]'}`}>
+                                {a}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Food & Motion Card */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white dark:border-gray-800 shadow-xl space-y-12">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-amber-100 dark:bg-[#D4AF37]/10 rounded-2xl">
+                        <Utensils className="w-6 h-6 text-[#D4AF37]" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-serif text-gray-900 dark:text-white">Food & Transport</h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] mt-1">Sustenance & city traversal</p>
+                    </div>
+                </div>
+
+                <div className="space-y-6">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Culinary Path</label>
+                    <div className="flex gap-3 flex-wrap">
+                        {["ANYTHING", "VEGETARIAN", "NON-VEG", "VEGAN", "JAIN"].map(d => (
+                            <button key={d} onClick={() => setFormData({ ...formData, diet: d })} className={`flex-1 py-4 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all border transform active:scale-95 ${formData.diet === d ? 'bg-black dark:bg-[#D4AF37] text-white dark:text-black border-black dark:border-[#D4AF37] shadow-md' : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-100 dark:border-gray-700 hover:border-black dark:hover:border-[#D4AF37]'}`}>
+                                {d}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                    <div className="space-y-6">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Transit Mode</label>
+                        <div className="flex gap-4">
+                            {["Personal", "Rickshaw/Public"].map(t => (
+                                <button key={t} onClick={() => setFormData({ ...formData, transport: t })} className={`flex-1 py-5 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all border transform active:scale-95 ${formData.transport === t ? 'bg-black dark:bg-[#D4AF37] text-white dark:text-black border-black dark:border-[#D4AF37] shadow-md' : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-100 dark:border-gray-700 hover:border-black dark:hover:border-[#D4AF37]'}`}>
+                                    {t}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                    <div className="space-y-6">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2">Vehicle Preference</label>
+                        <div className="flex gap-4">
+                            {["Two Wheeler", "Four Wheeler"].map(v => (
+                                <button key={v} onClick={() => setFormData({ ...formData, vehicleType: v })} className={`flex-1 py-5 rounded-3xl text-[10px] font-black uppercase tracking-widest transition-all border transform active:scale-95 ${formData.vehicleType === v ? 'bg-black dark:bg-[#D4AF37] text-white dark:text-black border-black dark:border-[#D4AF37] shadow-md' : 'bg-white dark:bg-gray-800 text-gray-400 border-gray-100 dark:border-gray-700 hover:border-black dark:hover:border-[#D4AF37]'}`}>
+                                    {v}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Special Instructions Card */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl p-8 md:p-10 rounded-[3rem] border border-white dark:border-gray-800 shadow-xl space-y-6">
+                <div className="flex items-center gap-4">
+                    <div className="p-3 bg-amber-100 dark:bg-[#D4AF37]/10 rounded-2xl">
+                        <FileText className="w-6 h-6 text-[#D4AF37]" />
+                    </div>
+                    <div>
+                        <h3 className="text-2xl font-serif text-gray-900 dark:text-white">Special Instructions</h3>
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#D4AF37] mt-1">Specific needs or custom requests</p>
+                    </div>
+                </div>
+                <textarea
+                    value={formData.specialRequests}
+                    onChange={e => setFormData({ ...formData, specialRequests: e.target.value })}
+                    placeholder="E.g., Traveling with seniors, need wheelchair access, interested in local oil painting workshops, prefer quiet mornings..."
+                    className="w-full bg-white dark:bg-gray-800 border border-gray-100 dark:border-gray-700 p-8 rounded-[2rem] text-sm md:text-base h-48 resize-none focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all placeholder:italic font-medium shadow-inner"
+                />
+            </div>
+
+            {/* Bottom Generation Action */}
+            <div className="max-w-4xl mx-auto w-full">
+                <button
+                    onClick={generatePlanner}
+                    disabled={isTravaLoading}
+                    className="group relative w-full py-8 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-[2.5rem] font-black text-sm uppercase tracking-[0.5em] shadow-[0_30px_60px_-15px_rgba(0,0,0,0.3)] dark:shadow-[0_30px_60px_-15px_rgba(212,175,55,0.3)] hover:scale-[1.02] active:scale-95 transition-all duration-500 overflow-hidden disabled:opacity-50 disabled:scale-100">
+                    <span className="relative z-10 flex items-center justify-center gap-3">
+                        {isTravaLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Construct Your Heritage ID"}
+                        {!isTravaLoading && <ArrowRight className="w-5 h-5 group-hover:translate-x-2 transition-transform" />}
+                    </span>
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+                </button>
+                <p className="text-center text-gray-400 text-[9px] font-black uppercase tracking-widest mt-8 flex items-center justify-center gap-2">
+                    <Shield className="w-3 h-3" /> Trava Gen Engine v2.4 Royal Update
+                </p>
+            </div>
+        </div>
+    );
+
+    return (
+        <div className="fixed inset-0 z-[100] flex flex-col h-screen max-h-screen bg-transparent transition-colors overflow-hidden font-sans">
+            {/* Immersive Cinematic Header */}
+            <div style={{ transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)', opacity: headerHidden ? 0 : 1, transition: 'transform 0.35s cubic-bezier(0.4,0,0.2,1), opacity 0.25s ease', willChange: 'transform, opacity', position: 'relative', zIndex: 10 }} className="bg-gradient-to-br from-[#111111] via-[#1a1a1a] to-[#000000] p-10 pt-16 overflow-hidden shrink-0 shadow-2xl border-b border-[#D4AF37]/20">
+                {/* Dynamic Background Noise/Glows */}
+                <div className="absolute inset-0 opacity-10 pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/black-paper.png')]"></div>
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#D4AF37]/5 rounded-full blur-[120px] -mr-48 -mt-48 transition-all duration-1000"></div>
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-[#D4AF37]/5 rounded-full blur-[100px] -ml-24 -mb-24"></div>
+
+                <button
+                    onClick={onBack}
+                    className="absolute left-6 top-8 w-12 h-12 bg-white/5 hover:bg-[#D4AF37]/10 backdrop-blur-xl border border-white/10 rounded-full flex items-center justify-center text-white transition-all hover:scale-110 active:scale-90 z-30"
+                >
+                    <ArrowLeft size={22} className="text-[#D4AF37]" />
+                </button>
+
+                {/* Invite Friend Button - Top Right */}
+                <button
+                    onClick={() => setShowInviteModal(true)}
+                    className="absolute right-6 top-8 flex items-center gap-2 px-5 py-3 bg-[#D4AF37]/10 hover:bg-[#D4AF37]/20 backdrop-blur-xl border border-[#D4AF37]/30 rounded-full text-[#D4AF37] transition-all hover:scale-105 active:scale-95 z-30"
+                >
+                    <Users size={16} />
+                    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">Invite</span>
+                </button>
+
+                <div className="flex flex-col items-center text-center space-y-4 relative z-10">
+                    <div className="flex items-center gap-4 animate-in zoom-in duration-700">
+                        <div className="w-16 h-16 bg-gradient-to-br from-[#D4AF37] to-[#B8962F] rounded-3xl flex items-center justify-center shadow-[0_0_20px_rgba(212,175,55,0.3)] border border-white/20 transform hover:rotate-12 transition-transform duration-500">
+                            <Sparkles className="text-black w-9 h-9 animate-pulse" />
+                        </div>
+                        <div className="text-left">
+                            <h2 className="text-[#D4AF37] text-5xl font-serif tracking-tight">Trava AI</h2>
+                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.4em] mt-1 ml-1 opacity-80">Heritage Intelligence</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="mt-12 flex justify-center">
+                    <div className="bg-black/40 backdrop-blur-3xl p-2 rounded-[2rem] flex border border-[#D4AF37]/20 shadow-3xl">
+                        <button
+                            onClick={() => setMode('chat')}
+                            className={`px-8 md:px-12 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'chat' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
+                        >
+                            <MessageSquare size={14} className={mode === 'chat' ? 'text-black' : 'text-gray-600'} />
+                            Chat
+                        </button>
+                        <button
+                            onClick={() => setMode('planner')}
+                            className={`px-8 md:px-12 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'planner' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
+                        >
+                            <LayoutDashboard size={14} className={mode === 'planner' ? 'text-black' : 'text-gray-600'} />
+                            Planner
+                        </button>
+                        <button
+                            onClick={() => setMode('budget')}
+                            className={`px-8 md:px-12 py-4 rounded-[1.5rem] text-[10px] font-black uppercase tracking-[0.15em] transition-all duration-500 flex items-center gap-2 ${mode === 'budget' ? 'bg-[#D4AF37] text-black shadow-2xl scale-100' : 'text-gray-400 hover:text-[#D4AF37] hover:bg-white/5'}`}
+                        >
+                            <IndianRupee size={14} className={mode === 'budget' ? 'text-black' : 'text-gray-600'} />
+                            Split
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            {/* Content Container */}
+            <div ref={contentRef} className="flex-1 overflow-y-auto overflow-x-hidden relative">
+                {/* Subtle Background pattern */}
+                <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05] pointer-events-none bg-[url('https://www.transparenttextures.com/patterns/asfalt-dark.pattern')]"></div>
+                {mode === 'chat' ? renderChat() : mode === 'planner' ? renderPlanner() : renderBudgetSplitter()}
+            </div>
+
+            {/* Invite Friend Modal */}
+            {showInviteModal && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300" onClick={() => setShowInviteModal(false)}>
+                    <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] p-8 w-full max-w-md shadow-2xl border border-gray-100 dark:border-gray-800 animate-in zoom-in-95 duration-300" onClick={e => e.stopPropagation()}>
+                        <div className="flex items-center gap-3 mb-6">
+                            <div className="w-12 h-12 bg-[#D4AF37]/10 rounded-2xl flex items-center justify-center">
+                                <Users className="w-6 h-6 text-[#D4AF37]" />
+                            </div>
+                            <div>
+                                <h3 className="text-xl font-serif text-gray-900 dark:text-white">Invite a Friend</h3>
+                                <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">Share this trip plan</p>
+                            </div>
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 ml-2 mb-2 block">Friend's Name</label>
+                                <input
+                                    value={inviteName}
+                                    onChange={(e) => setInviteName(e.target.value)}
+                                    placeholder="e.g., Rahul, Priya..."
+                                    className="w-full bg-gray-50 dark:bg-gray-800 border border-gray-100 dark:border-gray-700 rounded-2xl py-4 px-6 text-sm font-medium focus:ring-4 focus:ring-[#D4AF37]/10 outline-none transition-all"
+                                />
+                            </div>
+                            <button
+                                onClick={handleInvite}
+                                className="w-full py-5 bg-black dark:bg-[#D4AF37] text-white dark:text-black rounded-2xl font-black text-xs uppercase tracking-widest shadow-lg hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                            >
+                                <Share2 size={16} />
+                                {inviteCopied ? 'Link Copied!' : 'Share Invite Link'}
+                            </button>
+                            <button
+                                onClick={() => setShowInviteModal(false)}
+                                className="w-full py-3 text-gray-400 text-xs font-bold uppercase tracking-widest hover:text-gray-600 transition-colors"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
+export const PartnerDashboard = ({ onLogout, partnerData }) => {
+    const { t } = useTranslation();
+    const [activeTab, setActiveTab] = useState('overview');
+    const [feedbacks, setFeedbacks] = useState([]);
+    const [confirmModal, setConfirmModal] = useState({ show: false, title: '', message: '', onConfirm: null, type: 'danger' });
+    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
+
+    React.useEffect(() => {
+        loadSpotFeedback();
+    }, [partnerData]);
+
+    const loadSpotFeedback = async () => {
+        try {
+            // Use local supabase instance
+            if (supabase && partnerData?.spotName) {
+                const { data, error } = await supabase
+                    .from('partner_feedback')
+                    .select('*')
+                    .eq('spot_name', partnerData.spotName)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+                setFeedbacks(data || []);
+            }
+        } catch (err) {
+            console.error("Error loading spot feedback:", err);
+            // Local fallback
+            const local = JSON.parse(localStorage.getItem('user_feedback') || '[]');
+            setFeedbacks(local);
+        }
+    };
+
+    const realReviewsCount = feedbacks.length;
+    const realAvgRating = feedbacks.length > 0
+        ? (feedbacks.reduce((acc, f) => acc + (f.rating || 5), 0) / feedbacks.length).toFixed(1)
+        : "5.0";
+
+    // Mock data for the partner's spot with dynamic reviews/rating
+    const spotData = {
+        name: partnerData?.spotName || "",
+        category: partnerData?.category || "",
+        rating: realAvgRating,
+        reviewsCount: realReviewsCount,
+        totalVisits: realReviewsCount, // Dynamic based on reviews
+        status: "Online",
+        images: [],
+        description: "",
+        openingHours: "",
+        location: ""
+    };
+
+    const showNotification = (message, type = 'success') => {
+        setNotification({ show: true, message, type });
+        setTimeout(() => setNotification({ show: false, message: '', type: 'success' }), 3000);
+    };
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'overview':
+                return <PartnerOverviewTab spot={spotData} setActiveTab={setActiveTab} feedbacks={feedbacks} />;
+            case 'manage':
+                return <ManageSpotTab spot={spotData} showNotification={showNotification} />;
+            case 'reviews':
+                return <ReviewsTab feedbacks={feedbacks} />;
+            case 'invites':
+                return <PartnerInvitationsTab partner={partnerData} spot={spotData} showNotification={showNotification} />;
+            case 'events':
+                return <EventsTab partner={partnerData} spot={spotData} setConfirmModal={setConfirmModal} showNotification={showNotification} />;
+            case 'premium':
+                return <PremiumTab partner={partnerData} setActiveTab={setActiveTab} />;
+            case 'settings':
+                return <PartnerSettingsTab partner={partnerData} />;
+            default:
+                return <PartnerOverviewTab spot={spotData} setActiveTab={setActiveTab} feedbacks={feedbacks} />;
+        }
+    };
+
+    return (
+        <div className="min-h-screen mysore-main-bg font-sans flex transition-colors duration-200">
+            {/* Sidebar */}
+            <aside className="w-64 bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-r border-gray-100 dark:border-gray-800 hidden md:flex flex-col fixed h-full z-30">
+                <div className="p-8 border-b border-gray-100 dark:border-gray-800">
+                    <h1 className="text-2xl font-serif text-black dark:text-white tracking-tight">
+                        Mysuru <span className="font-bold text-[#D4AF37]">{t('mysuruPartner')}</span>
+                    </h1>
+                </div>
+
+                <nav className="flex-1 p-6 space-y-3">
+                    <PartnerNavItem
+                        icon={<LayoutDashboard />}
+                        label={t('dashboardTab')}
+                        active={activeTab === 'overview'}
+                        onClick={() => setActiveTab('overview')}
+                    />
+                    <PartnerNavItem
+                        icon={<Store />}
+                        label={t('manageSpotTab')}
+                        active={activeTab === 'manage'}
+                        onClick={() => setActiveTab('manage')}
+                    />
+                    <PartnerNavItem
+                        icon={<MessageSquare />}
+                        label={t('reviewsTab')}
+                        active={activeTab === 'reviews'}
+                        onClick={() => setActiveTab('reviews')}
+                    />
+                    <PartnerNavItem
+                        icon={<Inbox />}
+                        label={t('invitationsTab')}
+                        active={activeTab === 'invites'}
+                        onClick={() => setActiveTab('invites')}
+                    />
+                    <PartnerNavItem
+                        icon={<Calendar />}
+                        label={t('eventsTab')}
+                        active={activeTab === 'events'}
+                        onClick={() => setActiveTab('events')}
+                    />
+                    <PartnerNavItem
+                        icon={<Sparkles className="text-[#D4AF37]" />}
+                        label="Premium"
+                        active={activeTab === 'premium'}
+                        onClick={() => setActiveTab('premium')}
+                    />
+                    <PartnerNavItem
+                        icon={<Settings />}
+                        label={t('settingsTab')}
+                        active={activeTab === 'settings'}
+                        onClick={() => setActiveTab('settings')}
+                    />
+                </nav>
+
+                <div className="p-6 border-t border-gray-100 dark:border-gray-800">
+                    <button
+                        onClick={onLogout}
+                        className="w-full flex items-center gap-3 px-5 py-4 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/10 rounded-2xl transition-all font-bold text-sm"
+                    >
+                        <LogOut className="w-5 h-5" />
+                        <span>{t('logout')}</span>
+                    </button>
+                </div>
+            </aside>
+
+            {/* Main Content */}
+            <main className="flex-1 md:ml-64 p-8 md:p-12 h-screen overflow-y-auto custom-scrollbar">
+                <div className="max-w-6xl mx-auto">
+                    <header className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                        <div>
+                            <h2 className="text-4xl font-serif text-black dark:text-white">
+                                {t('welcomePartner', { name: partnerData?.fullName?.split(' ')[0] || "Partner" })}
+                            </h2>
+                            <p className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px] mt-2">
+                                {t('managing', { spotName: spotData.name })}
+                            </p>
+                        </div>
+                        <div className="flex items-center gap-3 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm px-5 py-3 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                            <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                            <span className="text-xs font-black uppercase tracking-widest text-green-600 dark:text-green-400">{t('liveStatus')}</span>
+                        </div>
+                    </header>
+
+                    {renderContent()}
+                </div>
+            </main>
+
+            {/* Custom Confirmation Modal */}
+            {confirmModal.show && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 sm:p-0">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}></div>
+                    <div className="bg-white dark:bg-gray-900 rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 w-full max-w-md relative z-10 overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="p-8 sm:p-10">
+                            <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-6 ${confirmModal.type === 'danger' ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+                                <Settings className="h-7 w-7" />
+                            </div>
+                            <h3 className="text-2xl font-serif text-black dark:text-white mb-3">{confirmModal.title}</h3>
+                            <p className="text-gray-500 dark:text-gray-400 text-sm leading-relaxed mb-8">{confirmModal.message}</p>
+                            <div className="flex flex-col sm:flex-row gap-3">
+                                <button
+                                    onClick={() => setConfirmModal(prev => ({ ...prev, show: false }))}
+                                    className="flex-1 py-4 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-black dark:hover:text-white transition-colors"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={confirmModal.onConfirm}
+                                    className={`flex-1 py-4 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl transition-all hover:scale-105 active:scale-95 ${confirmModal.type === 'danger' ? 'bg-rose-500 text-white shadow-rose-500/20' : 'bg-black dark:bg-[#D4AF37] text-white dark:text-black shadow-black/20'}`}
+                                >
+                                    Confirm Action
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Premium Toast Notification */}
+            {notification.show && (
+                <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[101] animate-in slide-in-from-bottom-10 duration-500">
+                    <div className="bg-black dark:bg-gray-800 text-white px-8 py-4 rounded-[1.5rem] shadow-2xl flex items-center gap-4 border border-white/10">
+                        <div className={`w-2 h-2 rounded-full ${notification.type === 'error' ? 'bg-rose-500' : 'bg-emerald-500'} animate-pulse`}></div>
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{notification.message}</span>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export const PartnerNavItem = ({ icon, label, active, onClick }) => (
+    <button
+        onClick={onClick}
+        className={`w-full flex items-center gap-4 px-5 py-4 rounded-2xl font-bold text-sm transition-all duration-300 ${active
+            ? 'bg-black dark:bg-[#D4AF37] text-white dark:text-black shadow-xl shadow-[#D4AF37]/10 translate-x-1'
+            : 'text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800/50 hover:text-gray-900 dark:hover:text-white'
+            }`}
+    >
+        {React.cloneElement(icon, { size: 20 })}
+        <span>{label}</span>
+    </button>
+);
+
+
+export const PartnerOverviewTab = ({ spot, setActiveTab, feedbacks }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="space-y-8">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+                <PartnerStatCard
+                    label={t('overviewReviews')}
+                    value={spot.reviewsCount}
+                    trend={t('overviewNew')}
+                    icon={<MessageSquare className="text-purple-600" />}
+                    bgColor="bg-purple-50 dark:bg-purple-900/20"
+                    onClick={() => setActiveTab('reviews')}
+                />
+                <PartnerStatCard
+                    label={t('overviewProfileViews')}
+                    value="8"
+                    trend="+18%"
+                    icon={<Users className="text-emerald-600" />}
+                    bgColor="bg-emerald-50 dark:bg-emerald-900/20"
+                    onClick={() => setActiveTab('overview')}
+                />
+            </div>
+
+            {/* Live Heritage Map Spotlight */}
+            <div className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-xl rounded-[2.5rem] shadow-xl p-10 border border-gray-100 dark:border-gray-800">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+                    <div>
+                        <h3 className="text-2xl font-serif text-black dark:text-white">{t('heritageMapPresence')}</h3>
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1">{t('heritageMapSubtitle')}</p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]"></div>
+                        <span className="text-[10px] font-black uppercase tracking-widest text-emerald-600 dark:text-emerald-400">{t('liveElevation')}</span>
+                    </div>
+                </div>
+                <div className="h-[400px] rounded-[2rem] overflow-hidden border border-gray-100 dark:border-gray-700 relative shadow-inner group">
+                    <MapComponent interactive={false} />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div className="absolute bottom-8 left-8 p-6 bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 pointer-events-none opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
+                        <p className="text-white text-xs font-bold uppercase tracking-widest">{t('sovereignExplorerView')}</p>
+                    </div>
+                </div>
+            </div>
+
+
+            {/* Quick Actions */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-black dark:bg-[#D4AF37] rounded-[2rem] p-10 text-white dark:text-black relative overflow-hidden group shadow-2xl">
+                    <div className="relative z-10">
+                        <h3 className="text-2xl font-serif mb-2">{t('boostVisibility')}</h3>
+                        <p className="opacity-80 font-medium mb-8 text-sm">{t('boostVisibilityDesc')}</p>
+                        <button
+                            onClick={() => setActiveTab('events')}
+                            className="bg-[#D4AF37] dark:bg-black text-black dark:text-[#D4AF37] px-8 py-4 rounded-2xl font-black flex items-center gap-3 hover:scale-105 transition-all shadow-xl text-sm"
+                        >
+                            <Sparkles size={20} />
+                            <span>{t('createOffer')}</span>
+                        </button>
+                    </div>
+                    <Sparkles className="absolute -bottom-4 -right-4 w-40 h-40 opacity-10 group-hover:scale-110 transition-transform duration-700" />
+                </div>
+                <div className="bg-white dark:bg-gray-900 rounded-[2rem] p-10 border border-gray-100 dark:border-gray-800 shadow-xl flex flex-col justify-center">
+                    <h3 className="text-2xl font-serif text-black dark:text-white mb-2">{t('updatePhotos')}</h3>
+                    <p className="text-gray-500 dark:text-gray-400 mb-8 font-medium text-sm">{t('updatePhotosDesc')}</p>
+                    <div className="flex items-center gap-3">
+                        <button className="bg-gray-50 dark:bg-gray-800 text-black dark:text-white px-8 py-4 rounded-2xl font-black flex items-center gap-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all text-sm shadow-sm ring-1 ring-gray-100 dark:ring-gray-800">
+                            <Camera size={20} className="text-[#D4AF37]" />
+                            <span>{t('uploadPhotos')}</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+
+export const ManageSpotTab = ({ spot, showNotification }) => {
+    const { t } = useTranslation();
+    const [products, setProducts] = useState(spot.products || []);
+    const [showProductModal, setShowProductModal] = useState(false);
+    const [newProduct, setNewProduct] = useState({ description: '', image: '', priceRange: '' });
+
+    const handleAddProduct = () => {
+        if (newProduct.description && newProduct.priceRange) {
+            setProducts([...products, { ...newProduct, id: Date.now() }]);
+            setNewProduct({ description: '', image: '', priceRange: '' });
+            setShowProductModal(false);
+        }
+    };
+
+    const handleRemoveProduct = (id) => {
+        setProducts(products.filter(p => p.id !== id));
+    };
+
+    return (
+        <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 overflow-hidden px-10 py-12">
+            <h3 className="text-3xl font-serif text-black dark:text-white mb-10">{t('curationDetails')}</h3>
+            <form className="space-y-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">{t('heritageSpotName')}</label>
+                        <input
+                            type="text"
+                            defaultValue={spot.name}
+                            className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] outline-none transition-all font-medium text-sm shadow-inner"
+                        />
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">{t('classification')}</label>
+                        <select
+                            defaultValue="Hidden Gem"
+                            className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] outline-none transition-all font-bold text-sm shadow-inner appearance-none cursor-pointer"
+                        >
+                            <option>Local Artisan</option>
+                            <option>Hyperlocal Food</option>
+                            <option>Hidden Gem</option>
+                            <option>Cultural Experience</option>
+                            <option>Nature</option>
+                        </select>
+                    </div>
+                </div>
+
+                {/* Products Section */}
+                <div className="bg-white/50 dark:bg-gray-800/30 p-8 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-inner">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                        <div>
+                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">Products & Offerings</label>
+                            <p className="text-xs text-gray-500 font-medium">Add items or experiences available at this spot.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={() => setShowProductModal(true)}
+                            className="bg-black dark:bg-[#D4AF37] text-white dark:text-black px-5 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-md transition-transform hover:scale-105 self-start sm:self-auto shrink-0"
+                        >
+                            + Add Product
+                        </button>
+                    </div>
+
+                    {products.length > 0 && (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 border-t border-gray-100 dark:border-gray-800 pt-6">
+                            {products.map(prod => (
+                                <div key={prod.id} className="bg-white dark:bg-gray-800 rounded-2xl p-4 border border-gray-100 dark:border-gray-700 shadow-sm relative group">
+                                    {prod.image && (
+                                        <div className="w-full h-32 mb-4 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900 border border-gray-100 dark:border-gray-800">
+                                            <img src={prod.image} alt="Product" className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+                                        </div>
+                                    )}
+                                    <div className="pr-8">
+                                        <p className="text-sm font-bold text-gray-900 dark:text-white mb-1 leading-tight">{prod.description}</p>
+                                        <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">{prod.priceRange}</p>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveProduct(prod.id)}
+                                        className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center bg-gray-50 hover:bg-red-50 dark:bg-gray-700 dark:hover:bg-red-500/20 text-gray-400 hover:text-red-500 rounded-xl transition-colors"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                <div>
+                    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">{t('soulfulNarrative')}</label>
+                    <textarea
+                        rows="4"
+                        defaultValue={spot.description}
+                        className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 focus:border-[#D4AF37] outline-none transition-all font-medium text-sm shadow-inner resize-none"
+                    ></textarea>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">{t('sacredLocation')}</label>
+                        <div className="relative">
+                            <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 text-[#D4AF37]" size={18} />
+                            <input
+                                type="text"
+                                defaultValue={spot.location}
+                                className="w-full pl-14 pr-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 transition-all font-medium text-sm shadow-inner"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">{t('traditionalHours')}</label>
+                        <div className="relative">
+                            <Clock className="absolute left-5 top-1/2 -translate-y-1/2 text-[#D4AF37]" size={18} />
+                            <input
+                                type="text"
+                                defaultValue={spot.openingHours}
+                                className="w-full pl-14 pr-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 transition-all font-medium text-sm shadow-inner"
+                            />
+                        </div>
+                    </div>
+                    <div>
+                        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">{t('contactPresence')}</label>
+                        <input
+                            type="text"
+                            placeholder="+91 XXXXX XXXXX"
+                            className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 transition-all font-medium text-sm shadow-inner"
+                        />
+                    </div>
+                </div>
+
+                <div className="pt-6">
+                    <button
+                        type="submit"
+                        onClick={(e) => {
+                            e.preventDefault();
+                            showNotification("Heritage records preserved.");
+                        }}
+                        className="bg-black dark:bg-[#D4AF37] text-white dark:text-black px-12 py-5 rounded-2xl font-black shadow-2xl shadow-[#D4AF37]/20 active:scale-95 transition-all text-xs uppercase tracking-[0.2em]"
+                    >
+                        {t('preserveChanges')}
+                    </button>
+                </div>
+            </form>
+
+            {/* Product Modal */}
+            {showProductModal && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-6 sm:p-0">
+                    <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-in fade-in duration-300" onClick={() => setShowProductModal(false)}></div>
+                    <div className="bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl border border-gray-100 dark:border-gray-800 w-full max-w-md relative z-10 p-8 sm:p-10 animate-in zoom-in-95 duration-300">
+                        <h3 className="text-2xl font-serif text-black dark:text-white mb-6">Add Product</h3>
+                        <div className="space-y-5">
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Description</label>
+                                <input
+                                    type="text"
+                                    value={newProduct.description}
+                                    onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                                    placeholder="Product description (e.g. Handmade Silk Saree)"
+                                    className="w-full px-5 py-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none text-sm"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Product Image (Optional)</label>
+                                <div
+                                    className="w-full relative border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl p-6 flex flex-col items-center justify-center bg-gray-50 dark:bg-gray-800/50 hover:bg-gray-100 dark:hover:bg-gray-800/80 transition-colors cursor-pointer group"
+                                    onDragOver={(e) => e.preventDefault()}
+                                    onDrop={(e) => {
+                                        e.preventDefault();
+                                        const file = e.dataTransfer.files[0];
+                                        if (file && file.type.startsWith('image/')) {
+                                            const reader = new FileReader();
+                                            reader.onload = (e) => setNewProduct({ ...newProduct, image: e.target.result });
+                                            reader.readAsDataURL(file);
+                                        }
+                                    }}
+                                >
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                const reader = new FileReader();
+                                                reader.onload = (e) => setNewProduct({ ...newProduct, image: e.target.result });
+                                                reader.readAsDataURL(file);
+                                            }
+                                        }}
+                                    />
+                                    {newProduct.image ? (
+                                        <div className="relative w-full h-32 rounded-lg overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm">
+                                            <img src={newProduct.image} alt="Preview" className="w-full h-full object-cover" />
+                                            <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <span className="text-white text-[10px] font-black uppercase tracking-widest bg-black/50 px-3 py-1.5 rounded-lg backdrop-blur-sm">Change Image</span>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <div className="w-12 h-12 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center mb-3 shadow-sm group-hover:scale-110 transition-transform ring-1 ring-gray-100 dark:ring-gray-800">
+                                                <Camera size={20} className="text-[#D4AF37]" />
+                                            </div>
+                                            <p className="text-xs font-bold text-gray-600 dark:text-gray-300">Click or drag image here</p>
+                                            <p className="text-[10px] font-medium text-gray-400 mt-1">SVG, PNG, JPG or GIF (max. 5MB)</p>
+                                        </>
+                                    )}
+                                </div>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Price Range</label>
+                                <input
+                                    type="text"
+                                    value={newProduct.priceRange}
+                                    onChange={(e) => setNewProduct({ ...newProduct, priceRange: e.target.value })}
+                                    placeholder="e.g. ₹500 - ₹2000"
+                                    className="w-full px-5 py-3 rounded-xl border border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none text-sm"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-8">
+                            <button
+                                onClick={() => setShowProductModal(false)}
+                                className="flex-1 py-4 text-gray-400 font-black text-[10px] uppercase tracking-widest hover:text-black dark:hover:text-white transition-colors"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleAddProduct}
+                                disabled={!newProduct.description || !newProduct.priceRange}
+                                className="flex-1 py-4 rounded-xl font-black text-[10px] uppercase tracking-widest bg-black dark:bg-[#D4AF37] text-white dark:text-black shadow-xl disabled:opacity-50 transition-all hover:scale-105 active:scale-95"
+                            >
+                                Add
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+};
+
+export const ReviewsTab = ({ feedbacks }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="space-y-8">
+            <h3 className="text-3xl font-serif text-black dark:text-white mb-4">{t('travelerEchoes')}</h3>
+            <div className="space-y-6">
+                {feedbacks.length === 0 ? (
+                    <div className="py-24 text-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl rounded-[2rem] border border-dashed border-gray-200 dark:border-gray-800">
+                        <MessageSquare size={64} className="mx-auto text-gray-200 dark:text-gray-800 mb-6" />
+                        <p className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest text-[10px]">{t('noEchoes')}</p>
+                    </div>
+                ) : (
+                    feedbacks.map((feedback, i) => (
+                        <div key={feedback.id} className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl p-8 rounded-[2rem] shadow-xl border border-gray-100 dark:border-gray-800 transition-all hover:translate-x-1 group">
+                            <div className="flex justify-between items-start mb-6">
+                                <div className="flex gap-5">
+                                    <div className="w-14 h-14 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] font-black text-xl shadow-inner group-hover:scale-110 transition-transform">
+                                        {feedback.userEmail ? feedback.userEmail.charAt(0).toUpperCase() : 'U'}
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">{feedback.userEmail || t('anonymousTraveler')}</h4>
+                                        <div className="flex text-[#D4AF37] mt-1.5 gap-0.5">
+                                            {[1, 2, 3, 4, 5].map(star => (
+                                                <Star key={star} size={12} className={star <= feedback.rating ? "fill-current" : "text-gray-300 dark:text-gray-600"} />
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                                    {new Date(feedback.timestamp).toLocaleDateString()}
+                                </span>
+                            </div>
+                            <p className="text-gray-500 dark:text-gray-400 font-medium leading-relaxed text-sm italic">
+                                "{feedback.comment}"
+                            </p>
+                            <button className="mt-6 text-[#D4AF37] font-black text-[10px] uppercase tracking-widest hover:underline flex items-center gap-2">
+                                <MessageSquare size={14} />
+                                <span>{t('acknowledgeThought')}</span>
+                            </button>
+                        </div>
+                    ))
+                )}
+            </div>
+        </div>
+    );
+};
+
+export const PartnerSettingsTab = ({ partner }) => {
+    const { t } = useTranslation();
+    return (
+        <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl rounded-[2.5rem] shadow-2xl border border-gray-100 dark:border-gray-800 p-12">
+            <h3 className="text-3xl font-serif text-black dark:text-white mb-12">{t('partnerTitle')}</h3>
+            <div className="space-y-12">
+                <div className="flex items-center gap-8 pb-12 border-b border-gray-100 dark:border-gray-800">
+                    <div className="w-24 h-24 rounded-3xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] shadow-inner">
+                        <Users size={40} />
+                    </div>
+                    <div>
+                        <h4 className="text-xl font-bold text-gray-900 dark:text-white">{partner?.fullName || "Heritage Partner"}</h4>
+                        <p className="text-sm text-gray-400 font-bold uppercase tracking-widest mt-1.5">{partner?.email || "curator@mysurumarga.com"}</p>
+                    </div>
+                    <button className="ml-auto bg-black dark:bg-[#D4AF37] text-white dark:text-black px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:scale-105 transition-all">Relocate Photo</button>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div className="p-8 rounded-3xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md col-span-1 md:col-span-2">
+                        <div className="flex items-center gap-4 mb-6">
+                            <div className="p-3 bg-mysore-100 dark:bg-mysore-900/30 rounded-2xl">
+                                <Globe className="h-6 w-6 text-mysore-600" />
+                            </div>
+                            <div>
+                                <h4 className="font-bold text-gray-900 dark:text-white text-sm">{t('language')}</h4>
+                                <p className="text-xs text-gray-400 font-medium tracking-tight">Select your preferred language for the whole platform</p>
+                            </div>
+                        </div>
+                        <LanguageSelector />
+                    </div>
+                    <div className="p-8 rounded-3xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-2">{t('notifications')}</h4>
+                        <p className="text-xs text-gray-400 font-medium mb-6">Receive spiritual alerts when traveler echoes are recorded.</p>
+                        <div className="w-14 h-7 bg-[#D4AF37] rounded-full relative cursor-pointer ring-4 ring-[#D4AF37]/10">
+                            <div className="absolute right-1 top-1 w-5 h-5 bg-black rounded-full shadow-lg"></div>
+                        </div>
+                    </div>
+                    <div className="p-8 rounded-3xl bg-white/50 dark:bg-gray-800/50 border border-gray-100 dark:border-gray-700 shadow-sm transition-all hover:shadow-md">
+                        <h4 className="font-bold text-gray-900 dark:text-white text-sm mb-2">{t('visibility')}</h4>
+                        <p className="text-xs text-gray-400 font-medium mb-6">Toggle your spot's presence in the physical soul of the app.</p>
+                        <div className="w-14 h-7 bg-[#D4AF37] rounded-full relative cursor-pointer ring-4 ring-[#D4AF37]/10">
+                            <div className="absolute right-1 top-1 w-5 h-5 bg-black rounded-full shadow-lg"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const PartnerInvitationsTab = ({ partner, spot, showNotification }) => {
+    const { t } = useTranslation();
+    const [invites, setInvites] = useState(() => {
+        const stored = localStorage.getItem('collaboration_invites');
+        const allInvites = stored ? JSON.parse(stored) : [];
+        return allInvites.filter(inv => inv.partnerEmail === partner?.email);
+    });
+
+    const [isSending, setIsSending] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
+
+    React.useEffect(() => {
+        loadInvites();
+    }, [partner]);
+
+    const loadInvites = async () => {
+        let allInvites = [];
+
+        // 1. Try Supabase
+        try {
+            // Use local supabase instance
+            if (supabase && partner?.email) {
+                const { data, error } = await supabase
+                    .from('partner_applications')
+                    .select('*')
+                    .eq('email', partner.email)
+                    .order('created_at', { ascending: false });
+
+                if (!error && data) {
+                    allInvites = data.map(inv => ({
+                        id: inv.id,
+                        partnerName: inv.full_name,
+                        partnerEmail: inv.email,
+                        spotName: inv.spot_name,
+                        status: inv.status,
+                        timestamp: inv.created_at,
+                        source: 'cloud'
+                    }));
+                }
+            }
+        } catch (err) {
+            console.warn("Supabase load failed, using local fallback only:", err);
+        }
+
+        // 2. Load Local Invites
+        const local = JSON.parse(localStorage.getItem('collaboration_invites') || '[]');
+        const partnerLocal = local.filter(inv => inv.partnerEmail === partner?.email)
+            .map(inv => ({ ...inv, source: 'local' }));
+
+        // 3. Merge and set
+        const combined = [...allInvites, ...partnerLocal].sort((a, b) =>
+            new Date(b.timestamp) - new Date(a.timestamp)
+        );
+        setInvites(combined);
+    };
+
+    const sendInvite = async () => {
+        setIsSending(true);
+        const timestamp = new Date().toISOString();
+        const newInviteData = {
+            id: partner?.id || Date.now(),
+            partnerName: partner?.fullName || 'Partner',
+            partnerEmail: partner?.email || 'N/A',
+            spotName: spot.name,
+            category: spot.category,
+            status: 'pending',
+            timestamp: timestamp
+        };
+
+        let transmitted = false;
+
+        // 1. Try Supabase
+        try {
+            // Use local supabase instance
+            if (supabase) {
+                const { data, error } = await supabase
+                    .from('partner_applications')
+                    .insert([{
+                        user_id: partner?.id,
+                        full_name: partner?.fullName || 'Partner',
+                        email: partner?.email || 'N/A',
+                        spot_name: spot.name,
+                        category: spot.category,
+                        status: 'pending'
+                    }])
+                    .select();
+
+                if (!error && data && data[0]) {
+                    transmitted = true;
+                }
+            }
+        } catch (err) {
+            console.error("Cloud transmission skipped/failed:", err);
+        }
+
+        const local = JSON.parse(localStorage.getItem('collaboration_invites') || '[]');
+        localStorage.setItem('collaboration_invites', JSON.stringify([newInviteData, ...local]));
+
+        setInvites(prev => [newInviteData, ...prev]);
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 3000);
+        setIsSending(false);
+    };
+
+    return (
+        <div className="space-y-10">
+            <div className="bg-black dark:bg-[#D4AF37] rounded-[2.5rem] p-12 text-white dark:text-black shadow-2xl relative overflow-hidden group">
+                <div className="relative z-10">
+                    <h3 className="text-3xl font-serif mb-3">{t('partnerWithSovereignty')}</h3>
+                    <p className="opacity-80 font-medium mb-10 max-w-lg text-sm leading-relaxed">{t('requestCollaborationDesc')}</p>
+                    <button
+                        onClick={sendInvite}
+                        disabled={isSending}
+                        className={`bg-[#D4AF37] dark:bg-black text-black dark:text-[#D4AF37] px-10 py-5 rounded-2xl font-black flex items-center gap-4 hover:scale-105 transition-all shadow-xl text-xs uppercase tracking-widest ${isSending ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                        {isSending ? (
+                            <div className="w-5 h-5 border-2 border-black dark:border-[#D4AF37] border-t-transparent rounded-full animate-spin"></div>
+                        ) : (
+                            <Send size={20} />
+                        )}
+                        <span>{isSending ? t('transmitting') : t('requestCollaborationBtn')}</span>
+                    </button>
+                    {showSuccess && (
+                        <div className="mt-6 bg-emerald-500 text-white px-6 py-3 rounded-xl text-xs font-black uppercase tracking-widest animate-bounce inline-block shadow-lg">
+                            {t('invitationTransmitted')}
+                        </div>
+                    )}
+                </div>
+                <Send className="absolute -bottom-6 -right-6 w-48 h-48 opacity-10 group-hover:scale-110 transition-transform duration-700" />
+            </div>
+
+            <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl rounded-[2.5rem] border border-gray-100 dark:border-gray-800 shadow-2xl overflow-hidden">
+                <div className="px-10 py-8 border-b border-gray-100 dark:border-gray-800">
+                    <h3 className="text-2xl font-serif text-black dark:text-white">{t('requestChronicle')}</h3>
+                </div>
+                <div className="divide-y divide-gray-50 dark:divide-gray-800">
+                    {invites.length === 0 ? (
+                        <div className="py-24 text-center">
+                            <Inbox size={64} className="mx-auto text-gray-200 dark:text-gray-800 mb-6" />
+                            <p className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest text-[10px]">{t('noRecentRequests')}</p>
+                        </div>
+                    ) : (
+                        invites.map(invite => (
+                            <div key={invite.id} className="px-10 py-8 flex items-center justify-between transition-all hover:bg-gray-50/50 dark:hover:bg-gray-800/30">
+                                <div className="flex items-center gap-6">
+                                    <div className="w-12 h-12 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37]">
+                                        <Send size={20} />
+                                    </div>
+                                    <div>
+                                        <h4 className="font-bold text-gray-900 dark:text-white text-sm">{t('collaborationProtocol')}</h4>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mt-1.5 flex items-center gap-2">
+                                            <Clock size={12} className="text-[#D4AF37]" />
+                                            <span>{new Date(invite.timestamp).toLocaleDateString()} at {new Date(invite.timestamp).toLocaleTimeString()}</span>
+                                        </p>
+                                    </div>
+                                </div>
+                                <span className={`px-5 py-2 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ${invite.status === 'pending' ? 'bg-amber-500/10 text-amber-600 ring-amber-500/20' :
+                                    invite.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-600 ring-emerald-500/20' :
+                                        'bg-red-500/10 text-red-600 ring-red-500/20'
+                                    }`}>
+                                    {invite.status}
+                                </span>
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const PartnerStatCard = ({ icon, label, value, trend, bgColor, onClick }) => (
+    <div
+        onClick={onClick}
+        className="bg-white dark:bg-gray-900 p-8 rounded-[2rem] shadow-xl border border-gray-100 dark:border-gray-800 relative overflow-hidden group cursor-pointer transition-all hover:-translate-y-1"
+    >
+        <div className="relative z-10">
+            <div className="flex justify-between items-start mb-6">
+                <div className={`p-4 rounded-2xl ${bgColor}`}>
+                    {React.cloneElement(icon, { size: 24 })}
+                </div>
+                <span className="text-[10px] font-black uppercase tracking-widest text-green-600 bg-green-50 dark:bg-green-900/20 px-3 py-1.5 rounded-full ring-1 ring-green-100 dark:ring-green-900/50">
+                    {trend}
+                </span>
+            </div>
+            <h4 className="text-4xl font-black text-gray-900 dark:text-white mb-2 tracking-tight">{value}</h4>
+            <p className="text-xs font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">{label}</p>
+        </div>
+        <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-gray-50 dark:bg-gray-800/50 rounded-full scale-0 group-hover:scale-110 transition-transform duration-500 pointer-events-none"></div>
+    </div>
+);
+
+
+export const EventsTab = ({ partner, spot, setConfirmModal, showNotification }) => {
+    const { t } = useTranslation();
+    const [events, setEvents] = useState([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isCreating, setIsCreating] = useState(false);
+    const [showForm, setShowForm] = useState(false);
+    const [newEvent, setNewEvent] = useState({
+        title: '',
+        description: '',
+        date: '',
+        type: 'Festival',
+        price: 'Free'
+    });
+
+
+    React.useEffect(() => {
+        loadEvents();
+    }, [partner]);
+
+    const loadEvents = async () => {
+        setIsLoading(true);
+        try {
+            // Disabled until heritage_events table schema is configured in Supabase
+            // if (supabase && partner?.email) {
+            //     const { data, error } = await supabase
+            //         .from('heritage_events')
+            //         .select('*')
+            //         .eq('partner_email', partner.email);
+            //     if (error) throw error;
+            //     setEvents(data || []);
+            // }
+        } catch (err) {
+            console.warn("Partner events not available");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const handleCreateEvent = async (e) => {
+        e.preventDefault();
+        setIsCreating(true);
+        try {
+            const eventData = {
+                id: Date.now(),
+                partner_email: partner?.email || 'test@test.com',
+                spot_name: spot?.name || 'Local Spot',
+                title: newEvent.title,
+                description: newEvent.description,
+                event_type: newEvent.type,
+                price: newEvent.price,
+                date: newEvent.date
+            };
+
+            // Use local state for now to ensure it always works
+            setEvents(prev => [...prev, eventData]);
+            setShowForm(false);
+            setNewEvent({ title: '', description: '', date: '', type: 'Festival', price: 'Free' });
+            showNotification("Event chronicle created.");
+
+            // Optionally try supabase if it's there
+            if (supabase) {
+                try {
+                    await supabase.from('heritage_events').insert([eventData]);
+                } catch (e) {
+                    console.warn("Supabase insert failed, but local state updated", e);
+                }
+            }
+        } catch (err) {
+            console.error("Failed to create event:", err);
+            showNotification("Protocol failed.", "error");
+        } finally {
+            setIsCreating(false);
+        }
+    };
+
+    const deleteEvent = async (id) => {
+        setConfirmModal({
+            show: true,
+            title: 'Retire Event',
+            message: 'Are you sure you want to retire this event from the chronicle? This action is permanent.',
+            type: 'danger',
+            onConfirm: async () => {
+                try {
+                    // Use local supabase instance
+                    if (supabase) {
+                        const { error } = await supabase
+                            .from('heritage_events')
+                            .delete()
+                            .eq('id', id);
+
+                        if (error) throw error;
+                        setEvents(events.filter(e => e.id !== id));
+                        showNotification("Chronicle entry removed.");
+                    }
+                } catch (err) {
+                    console.error("Error deleting event:", err);
+                    showNotification("Protocol update failed.", "error");
+                }
+                setConfirmModal(prev => ({ ...prev, show: false }));
+            }
+        });
+    };
+
+    return (
+        <div className="space-y-10">
+            <div className="flex justify-between items-center">
+                <h3 className="text-3xl font-serif text-black dark:text-white">{t('heritageEventsOffers')}</h3>
+                <button
+                    onClick={() => setShowForm(!showForm)}
+                    className="bg-black dark:bg-[#D4AF37] text-white dark:text-black px-8 py-4 rounded-2xl font-black flex items-center gap-3 hover:scale-105 transition-all shadow-xl text-xs uppercase tracking-widest"
+                >
+                    {showForm ? <Inbox size={18} /> : <Plus size={18} />}
+                    <span>{showForm ? 'View Events' : t('designEventBtn')}</span>
+                </button>
+            </div>
+
+            {showForm ? (
+                <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl rounded-[2.5rem] p-12 border border-gray-100 dark:border-gray-800 shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <h4 className="text-2xl font-serif text-black dark:text-white mb-10">New Event Protocol</h4>
+                    <form onSubmit={handleCreateEvent} className="space-y-8">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Event Title</label>
+                                <input
+                                    required
+                                    type="text"
+                                    id="event-title"
+                                    name="title"
+                                    value={newEvent.title}
+                                    onChange={e => setNewEvent({ ...newEvent, title: e.target.value })}
+                                    placeholder="e.g. Dasara Workshop Special"
+                                    className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all font-medium"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Event Type</label>
+                                <select
+                                    id="event-type"
+                                    name="type"
+                                    value={newEvent.type}
+                                    onChange={e => setNewEvent({ ...newEvent, type: e.target.value })}
+                                    className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all font-bold cursor-pointer"
+                                >
+                                    <option>Festival</option>
+                                    <option>Workshop</option>
+                                    <option>Special Offer</option>
+                                    <option>Guided Tour</option>
+                                    <option>Art Exhibition</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Soulful Description</label>
+                            <textarea
+                                id="event-description"
+                                name="description"
+                                required
+                                rows="3"
+                                value={newEvent.description}
+                                onChange={e => setNewEvent({ ...newEvent, description: e.target.value })}
+                                placeholder="Describe the heritage experience..."
+                                className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all font-medium resize-none"
+                            ></textarea>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Temporal Marker (Date)</label>
+                                <input
+                                    required
+                                    type="date"
+                                    id="event-date"
+                                    name="date"
+                                    value={newEvent.date}
+                                    onChange={e => setNewEvent({ ...newEvent, date: e.target.value })}
+                                    className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all font-bold"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-3">Energy Exchange (Price)</label>
+                                <input
+                                    type="text"
+                                    id="event-price"
+                                    name="price"
+                                    value={newEvent.price}
+                                    onChange={e => setNewEvent({ ...newEvent, price: e.target.value })}
+                                    placeholder="Free or ? Amount"
+                                    className="w-full px-6 py-4 rounded-2xl border border-gray-100 dark:border-gray-800 bg-white/50 dark:bg-gray-800/50 text-black dark:text-white focus:ring-2 focus:ring-[#D4AF37]/20 outline-none transition-all font-medium"
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            disabled={isCreating}
+                            className={`w-full bg-black dark:bg-[#D4AF37] text-white dark:text-black py-5 rounded-2xl font-black uppercase tracking-widest text-xs shadow-2xl transition-all ${isCreating ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.02] active:scale-95'}`}
+                        >
+                            {isCreating ? 'Archiving to History...' : 'Commence Event'}
+                        </button>
+                    </form>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {isLoading ? (
+                        <div className="col-span-2 py-24 text-center">
+                            <div className="w-12 h-12 border-4 border-[#D4AF37] border-t-transparent rounded-full animate-spin mx-auto mb-6"></div>
+                            <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px]">Calling the Ancients...</p>
+                        </div>
+                    ) : events.length === 0 ? (
+                        <div className="col-span-2 py-24 text-center bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl rounded-[2.5rem] border border-dashed border-gray-200 dark:border-gray-800">
+                            <Calendar size={64} className="mx-auto text-gray-200 dark:text-gray-800 mb-6" />
+                            <p className="text-gray-400 dark:text-gray-500 font-bold uppercase tracking-widest text-[10px]">The chronicles are currently silent</p>
+                        </div>
+                    ) : (
+                        events.map(event => (
+                            <div key={event.id} className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl rounded-[2.5rem] p-8 border border-gray-100 dark:border-gray-800 shadow-xl group hover:translate-x-1 transition-all">
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ring-1 ${event.event_type === 'Festival' ? 'bg-amber-500/10 text-amber-600 ring-amber-500/20' :
+                                        event.event_type === 'Workshop' ? 'bg-indigo-500/10 text-indigo-600 ring-indigo-500/20' :
+                                            'bg-emerald-500/10 text-emerald-600 ring-emerald-500/20'
+                                        }`}>
+                                        {event.event_type}
+                                    </div>
+                                    <button
+                                        onClick={() => deleteEvent(event.id)}
+                                        className="text-gray-300 hover:text-red-500 transition-colors"
+                                    >
+                                        <LogOut size={16} className="rotate-90" />
+                                    </button>
+                                </div>
+                                <h4 className="text-xl font-serif text-black dark:text-white mb-3 group-hover:text-[#D4AF37] transition-colors">{event.title}</h4>
+                                <p className="text-gray-500 dark:text-gray-400 text-sm mb-8 line-clamp-2 font-medium leading-relaxed italic">"{event.description}"</p>
+
+                                <div className="flex items-center justify-between pt-6 border-t border-gray-50 dark:border-gray-800">
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                        <Clock size={14} className="text-[#D4AF37]" />
+                                        <span>{new Date(event.event_date).toLocaleDateString()}</span>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">
+                                        <Ticket size={14} className="text-[#D4AF37]" />
+                                        <span>{event.price}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
+        </div>
+    );
+};
+
+export const PremiumTab = ({ partner, setActiveTab }) => {
+    return (
+        <div className="space-y-10 animate-in fade-in zoom-in-95 duration-500">
+            {/* Hero Section */}
+            <div className="bg-black dark:bg-gray-900 rounded-[2.5rem] p-12 lg:p-16 text-white shadow-2xl relative overflow-hidden group border border-[#D4AF37]/20">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#D4AF37]/10 to-transparent pointer-events-none"></div>
+                <div className="relative z-10 max-w-2xl">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#D4AF37]/20 text-[#D4AF37] text-[10px] font-black uppercase tracking-widest mb-8 border border-[#D4AF37]/30">
+                        <Sparkles size={14} className="animate-pulse" />
+                        <span>Mysuru Marga Premium</span>
+                    </div>
+                    <h2 className="text-4xl lg:text-5xl font-serif mb-6 leading-tight">
+                        Elevate Your Heritage <br />
+                        <span className="text-[#D4AF37]">Capture the Soul of Mysuru.</span>
+                    </h2>
+                    <p className="text-gray-400 text-sm lg:text-base leading-relaxed mb-10 max-w-xl font-medium">
+                        Join the exclusive tier of certified heritage partners. Gain priority placement across the map, unlock deep traveler insights, and amplify your visibility to thousands of explorers daily.
+                    </p>
+                    <button className="bg-[#D4AF37] hover:bg-[#c4a132] text-black px-10 py-5 rounded-2xl font-black text-xs uppercase tracking-widest shadow-[0_0_40px_rgba(212,175,55,0.4)] transition-all hover:scale-105 active:scale-95 flex items-center gap-3">
+                        Upgrade Now
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14" /><path d="m12 5 7 7-7 7" /></svg>
+                    </button>
+                    <p className="mt-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest">Cancel anytime. 14-day money-back guarantee.</p>
+                </div>
+
+                {/* Decorative Elements */}
+                <div className="absolute right-0 top-0 w-1/2 h-full opacity-20 pointer-events-none hidden md:block">
+                    <div className="absolute right-10 top-10 w-64 h-64 bg-[#D4AF37] rounded-full blur-[100px]"></div>
+                </div>
+                <Sparkles className="absolute -bottom-10 -right-10 w-64 h-64 text-[#D4AF37] opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-all duration-1000" />
+            </div>
+
+            {/* Premium Benefits Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl p-10 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl group hover:-translate-y-2 transition-transform duration-300">
+                    <div className="w-16 h-16 rounded-2xl bg-amber-50 dark:bg-amber-900/20 text-amber-500 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-inner">
+                        <Star size={32} className="fill-current" />
+                    </div>
+                    <h3 className="text-xl font-serif text-black dark:text-white mb-4">Top Placement</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+                        Your spot will be highlighted at the paramount of search results and showcased on the explore page. Premium spots receive 3x more visibility.
+                    </p>
+                </div>
+
+                <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl p-10 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl group hover:-translate-y-2 transition-transform duration-300">
+                    <div className="w-16 h-16 rounded-2xl bg-emerald-50 dark:bg-emerald-900/20 text-emerald-500 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-inner">
+                        <LayoutDashboard size={32} />
+                    </div>
+                    <h3 className="text-xl font-serif text-black dark:text-white mb-4">Deep Analytics</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+                        Understand your audience with advanced analytics. Track profile views, interaction rates, and traveler demographics in real-time.
+                    </p>
+                </div>
+
+                <div className="bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl p-10 rounded-[2rem] border border-gray-100 dark:border-gray-800 shadow-xl group hover:-translate-y-2 transition-transform duration-300">
+                    <div className="w-16 h-16 rounded-2xl bg-purple-50 dark:bg-purple-900/20 text-purple-500 flex items-center justify-center mb-8 group-hover:scale-110 transition-transform shadow-inner">
+                        <Users size={32} />
+                    </div>
+                    <h3 className="text-xl font-serif text-black dark:text-white mb-4">Priority Support</h3>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
+                        Skip the queue. Get direct access to our dedicated heritage curation team to help optimize your spot profile and create engaging events.
+                    </p>
+                </div>
+            </div>
+
+            {/* Testimonial / Social Proof */}
+            <div className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 rounded-[2rem] p-10 border border-gray-100 dark:border-gray-800 shadow-sm flex flex-col md:flex-row items-center gap-10">
+                <div className="w-24 h-24 shrink-0 rounded-full overflow-hidden shadow-xl border-4 border-white dark:border-gray-700">
+                    <img src="https://i.pravatar.cc/150?img=33" alt="Partner Testimonial" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                    <div className="flex text-[#D4AF37] mb-3">
+                        {[1, 2, 3, 4, 5].map(i => <Star key={i} size={16} className="fill-current" />)}
+                    </div>
+                    <p className="text-lg md:text-xl font-serif text-gray-900 dark:text-white italic mb-4">
+                        "Upgrading to Premium was the best decision for our heirloom silk shop. Our footfall increased dramatically within the first month just from the priority map placement."
+                    </p>
+                    <div>
+                        <p className="text-sm font-bold text-gray-900 dark:text-gray-200">Ravi Shankar</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[#D4AF37]">Mysuru Silk Emporium</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+};
+
+export const ProfilePage = ({ onBack, isDarkMode, onToggleDarkMode, onLogout, userData, onUpdateProfile, savedPlaceIds, allPlaces }) => {
+    const [currentView, setCurrentView] = useState('main');
+
+    const renderView = () => {
+        switch (currentView) {
+            case 'settings':
+                return <SettingsView onBack={() => setCurrentView('main')} isDarkMode={isDarkMode} onToggleDarkMode={onToggleDarkMode} onUpdateProfile={onUpdateProfile} userData={userData} />;
+            case 'privacy':
+                return <PrivacyView onBack={() => setCurrentView('main')} onUpdateProfile={onUpdateProfile} userData={userData} />;
+            case 'wishlist':
+                return <WishlistView onBack={() => setCurrentView('main')} savedPlaceIds={savedPlaceIds} allPlaces={allPlaces} />;
+            case 'help':
+                return <HelpView onBack={() => setCurrentView('main')} />;
+            case 'about':
+                return <AboutView onBack={() => setCurrentView('main')} />;
+            case 'feedback':
+                return <FeedbackView onBack={() => setCurrentView('main')} userData={userData} />;
+            default:
+                return (
+                    <MainProfileView
+                        onBack={onBack}
+                        onNavigate={setCurrentView}
+                        onLogout={onLogout}
+                        userData={userData}
+                    />
+                );
+        }
+    };
+
+    return (
+        <div className="mysore-main-bg min-h-full pb-20 transition-colors duration-200">
+            {renderView()}
+        </div>
+    );
+};
+
+export const MainProfileView = ({ onBack, onNavigate, onLogout, userData }) => {
+    const { t } = useTranslation();
+    return (
+        <>
+            {/* Header */}
+            <div className="bg-transparent px-4 py-4 flex items-center shadow-none sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800 transition-colors duration-200">
+                <button onClick={onBack} className="mr-4 text-gray-600 dark:text-gray-300">
+                    <ArrowLeft className="w-6 h-6" />
+                </button>
+                <h1 className="text-xl font-bold text-gray-900 dark:text-white">{t('profileTitle')}</h1>
+            </div>
+
+            {/* User Info */}
+            <div className="bg-white/50 dark:bg-gray-800/50 rounded-3xl mt-4 mx-4 px-6 py-6 flex items-center shadow-sm border border-gray-100 dark:border-gray-800 transition-colors duration-200">
+                <div className="w-16 h-16 bg-orange-100 dark:bg-orange-900/30 rounded-full flex items-center justify-center text-orange-600 dark:text-orange-500 mb-0 mr-4 font-bold text-2xl">
+                    {(userData?.fullName || userData?.full_name || 'G').charAt(0).toUpperCase()}
+                </div>
+                <div>
+                    <h2 className="text-lg font-bold text-gray-900 dark:text-white">
+                        {userData?.fullName || userData?.full_name || t('guestUser')}
+                    </h2>
+                    <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm mt-1">
+                        <Mail className="w-3.5 h-3.5 mr-1.5" />
+                        <span>{userData?.email || t('noEmailProvided')}</span>
+                    </div>
+                    {userData?.phone && (
+                        <div className="flex items-center text-gray-500 dark:text-gray-400 text-sm mt-1">
+                            <Phone className="w-3.5 h-3.5 mr-1.5" />
+                            <span>{userData?.phone}</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Menu Options */}
+            <div className="mt-6 mx-4 bg-white/50 dark:bg-gray-800/50 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-800 transition-colors duration-200">
+                <MenuItem icon={Settings} label={t('settingsTab')} onClick={() => onNavigate('settings')} />
+                <MenuItem icon={Shield} label={t('privacySettings')} onClick={() => onNavigate('privacy')} />
+                <MenuItem icon={Heart} label={t('wishlist')} onClick={() => onNavigate('wishlist')} />
+                <MenuItem icon={HelpCircle} label={t('helpSupport')} onClick={() => onNavigate('help')} />
+                <MenuItem icon={Info} label={t('aboutApp')} onClick={() => onNavigate('about')} />
+                <MenuItem icon={MessageSquare} label={t('shareFeedback')} onClick={() => onNavigate('feedback')} />
+            </div>
+
+            <div className="px-4 mt-8">
+                <button
+                    onClick={onLogout}
+                    className="w-full py-3 text-red-500 font-medium bg-white dark:bg-gray-800 rounded-lg border border-red-100 dark:border-red-900/30 shadow-sm hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
+                    {t('logout')}
+                </button>
+                <p className="text-center text-xs text-gray-400 dark:text-gray-600 mt-4">{t('version')} 1.0.0</p>
+            </div>
+        </>
+    );
+};
+
+export const SettingsView = ({ onBack, isDarkMode, onToggleDarkMode, onUpdateProfile, userData }) => {
+    const { t, i18n } = useTranslation();
+
+    const handleToggle = (key, value) => {
+        if (onUpdateProfile) {
+            onUpdateProfile({ [key]: value });
+        }
+    };
+
+    const handleLanguageChange = (e) => {
+        i18n.changeLanguage(e.target.value);
+    };
+
+    return (
+        <>
+            <SubViewHeader title={t('settings')} onBack={onBack} />
+            <div className="mt-4 bg-white dark:bg-gray-900 transition-colors duration-200">
+                <ToggleItem
+                    icon={Bell}
+                    label={t('notifications')}
+                    checked={userData?.notifications !== false}
+                    onToggle={() => handleToggle('notifications', !userData?.notifications)}
+                />
+                <ToggleItem
+                    icon={Moon}
+                    label={t('darkMode')}
+                    checked={isDarkMode}
+                    onToggle={onToggleDarkMode}
+                />
+                <ToggleItem
+                    icon={MapPin}
+                    label={t('locationServices')}
+                    checked={userData?.locationServices !== false}
+                    onToggle={() => handleToggle('locationServices', !userData?.locationServices)}
+                />
+                <div className="h-px bg-gray-50 dark:bg-gray-800 my-2"></div>
+                <div className="flex items-center justify-between px-4 py-3 active:bg-gray-50 dark:active:bg-gray-800 transition-colors">
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center text-gray-900 dark:text-white">
+                            <Globe className="w-5 h-5 mr-3 text-gray-400 dark:text-gray-500" />
+                            <span className="font-medium">{t('systemLanguageTitle')}</span>
+                        </div>
+                    </div>
+                    <select
+                        className="bg-gray-100 dark:bg-gray-800 border-none text-sm rounded-lg px-2 py-1 text-gray-700 dark:text-gray-300 outline-none"
+                        value={i18n.language || 'en'}
+                        onChange={handleLanguageChange}
+                    >
+                        <option value="en">English</option>
+                        <option value="kn">ಕನ್ನಡ</option>
+                        <option value="hi">हिंदी</option>
+                        <option value="ta">தமிழ்</option>
+                        <option value="te">తెలుగు</option>
+                        <option value="es">Español</option>
+                        <option value="fr">Français</option>
+                    </select>
+                </div>
+            </div>
+        </>
+    );
+};
+
+export const PrivacyView = ({ onBack, onUpdateProfile, userData }) => {
+    const { t } = useTranslation();
+    const handleToggle = (key, value) => {
+        if (onUpdateProfile) {
+            onUpdateProfile({ [key]: value });
+        }
+    };
+
+    return (
+        <>
+            <SubViewHeader title={t('privacySettings')} onBack={onBack} />
+            <div className="mt-4 bg-white dark:bg-gray-900 transition-colors duration-200">
+                <ToggleItem
+                    icon={Lock}
+                    label="Profile Visibility"
+                    checked={userData?.isProfilePublic || false}
+                    onToggle={() => handleToggle('isProfilePublic', !userData?.isProfilePublic)}
+                />
+                <ToggleItem
+                    icon={User}
+                    label="Show Phone Number"
+                    checked={userData?.showPhone || false}
+                    onToggle={() => handleToggle('showPhone', !userData?.showPhone)}
+                />
+                <div className="h-px bg-gray-50 dark:bg-gray-800 my-2"></div>
+                <MenuItem icon={FileText} label="Terms of Service" />
+                <MenuItem icon={Shield} label="Privacy Policy" />
+            </div>
+        </>
+    );
+};
+
+export const WishlistView = ({ onBack, savedPlaceIds, allPlaces }) => {
+    const { t } = useTranslation();
+    const savedPlaces = allPlaces ? allPlaces.filter(p => savedPlaceIds && savedPlaceIds.includes(p.id)) : [];
+
+    return (
+        <>
+            <SubViewHeader title={t('wishlist')} onBack={onBack} />
+            {savedPlaces.length === 0 ? (
+                <div className="flex flex-col items-center justify-center p-8 text-center mt-10">
+                    <div className="w-16 h-16 bg-red-50 dark:bg-red-900/20 rounded-full flex items-center justify-center mb-4">
+                        <Heart className="w-8 h-8 text-red-500" />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-2">Your wishlist is empty</h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-sm">
+                        Save places you want to visit by tapping the heart icon on any experience.
+                    </p>
+                </div>
+            ) : (
+                <div className="p-4 grid grid-cols-1 gap-4">
+                    {savedPlaces.map(place => (
+                        <div key={place.id} className="relative">
+                            <PlaceCard place={place} onClick={() => { }} />
+                        </div>
+                    ))}
+                </div>
+            )}
+        </>
+    );
+};
+
+export const HelpView = ({ onBack }) => {
+    const { t } = useTranslation();
+    return (
+        <>
+            <SubViewHeader title={t('helpSupport')} onBack={onBack} />
+            <div className="mt-4 bg-white dark:bg-gray-900 transition-colors duration-200">
+                <MenuItem icon={HelpCircle} label="FAQs" />
+                <MenuItem icon={Phone} label="Contact Support" />
+                <MenuItem icon={ExternalLink} label="Visit Website" />
+            </div>
+        </>
+    );
+};
+
+export const AboutView = ({ onBack }) => {
+    const { t } = useTranslation();
+    return (
+        <>
+            <SubViewHeader title={t('aboutApp')} onBack={onBack} />
+            <div className="p-6 text-center">
+                <div className="w-20 h-20 bg-orange-500 rounded-2xl mx-auto flex items-center justify-center mb-6 shadow-lg shadow-orange-200 dark:shadow-none">
+                    <h1 className="text-3xl font-bold text-white">M</h1>
+                </div>
+                <h2 className="text-xl font-bold text-gray-900 dark:text-white">Mysuru Marga</h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">Version 1.0.0</p>
+                <p className="text-gray-600 dark:text-gray-300 mt-6 text-sm leading-relaxed">
+                    Mysuru Marga is your digital companion for exploring the heritage city of Mysore.
+                    Discover hidden gems, local artisans, and authentic culinary experiences curated just for you.
+                </p>
+                <div className="mt-8 text-xs text-gray-400 dark:text-gray-600">
+                    © 2025 Mysuru Marga. All rights reserved.
+                </div>
+            </div>
+        </>
+    );
+};
+
+export const FeedbackView = ({ onBack, userData }) => {
+    const { t } = useTranslation();
+    return (
+        <>
+            <SubViewHeader title={t('shareFeedback')} onBack={onBack} />
+            <div className="p-4">
+                <FeedbackSection userEmail={userData?.email || 'Anonymous'} />
+            </div>
+        </>
+    );
+};
+
+// Helper Components
+
+export const SubViewHeader = ({ title, onBack }) => (
+    <div className="bg-transparent px-4 py-4 flex items-center sticky top-0 z-10 border-b border-gray-100 dark:border-gray-800 transition-colors duration-200 pb-4 mb-4">
+        <button onClick={onBack} className="mr-4 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white">
+            <ArrowLeft className="w-6 h-6" />
+        </button>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">{title}</h1>
+    </div>
+);
+
+export const MenuItem = ({ icon: _Icon, label, value, onClick }) => (
+    <button onClick={onClick} className="w-full flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800 text-left transition-colors">
+        <div className="flex items-center">
+            <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mr-3 text-gray-600 dark:text-gray-400">
+                <_Icon className="w-4 h-4" />
+            </div>
+            <span className="text-gray-700 dark:text-gray-200 font-medium">{label}</span>
+        </div>
+        <div className="flex items-center">
+            {value && <span className="text-sm text-gray-500 dark:text-gray-400 mr-2">{value}</span>}
+            <ChevronRight className="w-5 h-5 text-gray-400 dark:text-gray-600" />
+        </div>
+    </button>
+);
+
+export const ToggleItem = ({ icon: _Icon, label, defaultChecked, checked, onToggle }) => {
+    const [internalChecked, setInternalChecked] = useState(defaultChecked || false);
+
+    // Use controlled state if checked/onToggle provided, else internal state
+    const isChecked = onToggle ? checked : internalChecked;
+    const toggleHandler = onToggle ? onToggle : () => setInternalChecked(!internalChecked);
+
+    return (
+        <div className="w-full flex items-center justify-between px-4 py-4 border-b border-gray-50 dark:border-gray-800 transition-colors">
+            <div className="flex items-center">
+                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mr-3 text-gray-600 dark:text-gray-400">
+                    <_Icon className="w-4 h-4" />
+                </div>
+                <span className="text-gray-700 dark:text-gray-200 font-medium">{label}</span>
+            </div>
+            <button
+                onClick={toggleHandler}
+                className={`w-11 h-6 rounded-full relative transition-colors ${isChecked ? 'bg-orange-500' : 'bg-gray-300 dark:bg-gray-600'}`}
+            >
+                <div className={`w-5 h-5 bg-white rounded-full absolute top-0.5 transition-transform ${isChecked ? 'translate-x-full left-0.5' : 'left-0.5'}`}></div>
+            </button>
+        </div>
+    );
+};
+
+
+// --- STATIC DATA ---
+export const featuredPlaces = [
+    {
+        id: 'palace-illumination',
+        title: "Mysore Palace Illumination",
+        category: "Festival",
+        categoryColor: "bg-amber-500",
+        description: "The crown jewel of Dasara, glowing with nearly 100,000 incandescent bulbs in a majestic night display.",
+        location: "City Center",
+        rating: 4.9,
+        coords: [12.3051, 76.6551],
+        image: "/palace-dasara.webp"
+    },
+    {
+        id: 'kr-circle-dasara',
+        title: "K.R. Circle Tower (Night)",
+        category: "Festival",
+        categoryColor: "bg-purple-600",
+        description: "The heart of Mysore glowing in festive light, centered around the iconic Maharaja Chamarajendra Wodeyar statue circle.",
+        location: "K.R. Circle",
+        rating: 4.8,
+        coords: [12.3051, 76.6551],
+        image: "/kr-circle-night.webp"
+    },
+    {
+        id: 'Lightings',
+        title: "Lightings",
+        category: "Heritage",
+        categoryColor: "bg-indigo-600",
+        description: "The neo-gothic cathedral towers illuminated against the night sky, creating a mystical atmosphere.",
+        location: "Ashoka Road",
+        rating: 4.7,
+        coords: [12.3209, 76.6593],
+        image: "/gallery3.webp"
+    }
+];
+
+export const popularPlaces = [
+    {
+        id: 'balmuri-falls',
+        title: "Balmuri Falls",
+        category: "Hidden Gem",
+        categoryColor: "bg-mysore-600",
+        description: "A man-made check dam on the Cauvery river, popular for wading through the water and photography.",
+        location: "KRS Road (15km)",
+        rating: 4.6,
+        coords: [12.4214, 76.5912],
+        image: "/balmuri.webp",
+        visitingTime: "6:00 AM - 6:00 PM",
+        ticketFee: "Free Entry",
+        history: "A man-made check dam on the Cauvery River, constructed during the building of the Krishna Raja Sagara (KRS) dam to store water for irrigation.",
+        heritage: "It is a popular picnic spot and has been a favorite location for South Indian film songs for decades due to its scenic step-fall effect."
+    },
+    {
+        id: 'edmuri-falls',
+        title: "Edmuri Falls",
+        category: "Hidden Gem",
+        categoryColor: "bg-mysore-600",
+        description: "A serene waterfall near Balmuri, perfect for a peaceful getaway and refreshing dips.",
+        location: "KRS Road (15km)",
+        rating: 4.4,
+        coords: [12.4225, 76.5895],
+        image: "/edmuri.webp",
+        visitingTime: "6:00 AM - 6:00 PM",
+        ticketFee: "Free Entry",
+        history: "A smaller sibling to Balmuri Falls, this is also a check dam used for ancient irrigation. It is quieter and less crowded, offering a more natural riverside experience.",
+        heritage: "While Balmuri is famous for films, Edmuri is known among locals for spiritual rituals performed on the banks of the sacred Cauvery river."
+    },
+    {
+        id: 'wax-museum',
+        title: "Melody World Wax Museum",
+        category: "Hidden Gem",
+        categoryColor: "bg-mysore-600",
+        description: "A unique museum featuring wax statues of musicians and instruments from across the world.",
+        location: "Siddhartha Layout",
+        rating: 4.3,
+        coords: [12.3015, 76.6855],
+        image: "/wax.webp",
+        visitingTime: "9:30 AM - 7:00 PM",
+        ticketFee: "₹50",
+        history: "Owned by an IT professional, this museum is housed in a heritage building. It was established to pay tribute to musicians across the world and houses over 300 musical instruments.",
+        heritage: "It is the largest collection of its kind in India, showcasing traditional Indian instruments and Western orchestras, preserved in a vintage Mysore architectural structure."
+    },
+    {
+        id: 'karighatta',
+        title: "Karighatta Hill",
+        category: "Hidden Gem",
+        categoryColor: "bg-mysore-600",
+        description: "A scenic hill with a Lord Srinivasa temple, offering stunning views of Cauvery and Lokapavani rivers.",
+        location: "Srirangapatna (20km)",
+        rating: 4.7,
+        coords: [12.4285, 76.7125],
+        image: "https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&q=80&w=1000",
+        visitingTime: "10:00 AM - 12:00 PM, 5:00 PM - 7:00 PM",
+        ticketFee: "Free Entry",
+        history: "Legend says that during the Ramayana, Sugriva brought a hill from the Himalayas to help build the Rama Setu, and a piece fell here. The temple is dedicated to Lord Vaikunta Srinivasa.",
+        heritage: "The hill is unique for its 'Darbha' grass, which is believed to be medicinal. It offers a confluence view where the rivers Cauvery and Lokapavani meet."
+    },
+    {
+        id: 'meenakshipura',
+        title: "Meenakshipura (Backwaters)",
+        category: "Hidden Gem",
+        categoryColor: "bg-mysore-600",
+        description: "A tranquil backwater destination with scenic river views, popular for birdwatching and photography.",
+        location: "KRS Backwaters (25km)",
+        rating: 4.5,
+        coords: [12.3855, 76.5425],
+        image: "/meenakshi.webp",
+        visitingTime: "Open 24/7 (Best during sunrise/sunset)",
+        ticketFee: "Free Entry",
+        history: "A quiet village area by the backwaters of the KRS Dam, which has gained popularity as a peaceful retreat away from the city's hustle.",
+        heritage: "Known as the 'Mini Goa' of Mysore, it offers a serene landscape that changes with the water levels of the dam, revealing hidden landscapes during summer."
+    },
+    {
+        id: 'venugopalaswamy-temple',
+        title: "Venugopalaswamy Temple",
+        category: "Hidden Gem",
+        categoryColor: "bg-mysore-600",
+        description: "An ancient temple submerged for decades, now beautifully restored on the banks of KRS backwaters.",
+        location: "Hosa Kannambadi (30km)",
+        rating: 4.8,
+        coords: [12.4125, 76.5125],
+        image: "/venugopalaswamy.webp",
+        visitingTime: "6:00 AM - 1:00 PM, 4:00 PM - 8:30 PM",
+        ticketFee: "Free Entry",
+        history: "Originally built in the 12th century by Hoysalas, this temple was submerged in 1930 for the KRS dam. It resurfaced after 70 years and was meticulously relocated stone-by-stone to its new home in 2011.",
+        heritage: "A masterpiece of Hoysala architecture, the temple is unique because it was completely relocated without losing its structural integrity, standing now as a symbol of heritage preservation."
+    },
+    {
+        id: 'mysore-palace',
+        title: "Mysore Palace (Amba Vilas)",
+        category: "Heritage",
+        categoryColor: "bg-amber-600",
+        description: "The city's crown jewel, renowned for its Indo-Saracenic architecture and opulent interiors.",
+        location: "City Center",
+        rating: 4.9,
+        coords: [12.3051, 76.6551],
+        image: "/src/assets/mysore-palace-daytime.jpg",
+        visitingTime: "10:00 AM - 5:30 PM",
+        ticketFee: "₹100 (Adults), ₹50 (Children)",
+        history: "Built in 1912 for the 24th Ruler of the Wodeyar Dynasty, this palace replaced the old wooden palace that was destroyed in a fire during a wedding in 1897. It was designed by the British architect Henry Irwin.",
+        heritage: "It is one of the most visited monuments in India. The palace showcases a unique blend of Hindu, Mughal, Rajput, and Gothic architectural styles, making it a masterpiece of Indo-Saracenic design."
+    },
+    {
+        id: 'chamundi-hill',
+        title: "Chamundi Hill & Temple",
+        category: "Spiritual",
+        categoryColor: "bg-orange-500",
+        description: "A sacred site at 3,489 feet, dedicated to Goddess Chamundeshwari with a monolithic Nandi.",
+        location: "Chamundi Hills",
+        rating: 4.8,
+        coords: [12.2753, 76.6701],
+        image: "/chamundi-trek.webp",
+        visitingTime: "7:30 AM - 9:00 PM",
+        ticketFee: "Free Entry (Special Darshan ₹100)",
+        history: "The temple dates back to the 12th century, with the tower built by the Vijayanagara rulers. The Wodeyar kings later made significant additions, including the 1000 steps leading to the top.",
+        heritage: "Goddess Chamundeshwari is the presiding deity of Mysore. The hill also features a massive 16-foot high monolithic Nandi statue, one of the largest in India, carved out of a single boulder."
+    },
+    {
+        id: 'st-philomenas',
+        title: "St. Philomena's Cathedral",
+        category: "Heritage",
+        categoryColor: "bg-indigo-600",
+        description: "One of the largest Gothic-style churches in Asia, inspired by Cologne Cathedral.",
+        location: "Ashoka Road",
+        rating: 4.7,
+        coords: [12.3209, 76.6593],
+        image: "/philomena.png",
+        visitingTime: "5:00 AM - 6:00 PM",
+        ticketFee: "Free Entry",
+        history: "The cathedral was built in 1936 using a Neo-Gothic style. The design was inspired by the Cologne Cathedral in Germany and has twin spires that are 175 feet tall.",
+        heritage: "It stands as a symbol of the secular outlook of the Mysore Maharajas, who provided the land and funds for its construction. The church is famous for its beautiful stained glass windows depicting scenes from the life of Christ."
+    },
+    {
+        id: 'mysore-zoo',
+        title: "Mysore Zoo (Sri Chamarajendra)",
+        category: "Nature",
+        categoryColor: "bg-green-600",
+        description: "One of the oldest and most diverse zoos in India, established in 1892.",
+        location: "Indiranagar",
+        rating: 4.6,
+        coords: [12.3021, 76.6644],
+        image: "/zoo.png",
+        visitingTime: "8:30 AM - 5:30 PM (Closed on Tuesdays)",
+        ticketFee: "₹100 (Adults), ₹50 (Children)",
+        history: "Started by Maharaja Chamarajendra Wadiyar X in 1892, it is one of the oldest zoos in the world. It began with just 10 acres and has now grown to over 150 acres.",
+        heritage: "The zoo is famous for its successful bird breeding program and for housing animals from more than 40 different countries. It was the first zoo in India to introduce an animal adoption scheme."
+    },
+    {
+        id: 'jaganmohan-palace',
+        title: "Jaganmohan Palace",
+        category: "Heritage",
+        categoryColor: "bg-amber-700",
+        description: "An older palace containing a vast collection of royal artifacts and paintings.",
+        location: "City Center",
+        rating: 4.4,
+        coords: [12.3061, 76.6501],
+        image: "/jaganmohan.png"
+    },
+    {
+        id: 'karanji-lake',
+        title: "Karanji Lake",
+        category: "Nature",
+        categoryColor: "bg-green-500",
+        description: "Serene nature trail with butterfly park and panoramic palace views",
+        location: "Siddhartha Layout",
+        rating: 4.3,
+        coords: [12.3021, 76.6715],
+        image: "/karanji.jpg"
+    },
+    {
+        id: 'kukkarahalli-lake',
+        title: "Kukkarahalli Lake",
+        category: "Nature",
+        categoryColor: "bg-green-600",
+        description: "A favorite spot for birdwatchers and walkers, especially during sunset.",
+        location: "Saraswathipuram",
+        rating: 4.5,
+        coords: [12.3082, 76.6341],
+        image: "/kukkarahalli.png"
+    },
+    {
+        id: 'sand-museum',
+        title: "Mysore Sand Sculpture Museum",
+        category: "Hidden Gem",
+        categoryColor: "bg-mysore-600",
+        description: "India's first sand sculpture museum, showcasing intricate artwork made entirely of sand and water.",
+        location: "Chamundi Hill Road",
+        rating: 4.4,
+        coords: [12.2952, 76.6812],
+        image: "/sand.webp",
+        visitingTime: "8:30 AM - 6:30 PM",
+        ticketFee: "₹40 (Adults), ₹20 (Children)",
+        history: "Created by artist M.N. Gowri, this is India's first ever sand sculpture museum. It was built using 115 truckloads of sand.",
+        heritage: "The museum showcases over 150 sculptures on 16 different themes, ranging from the heritage of Mysore and Dasara processions to wildlife and culture, all made purely with sand and water."
+    },
+    {
+        id: 'rail-museum',
+        title: "Mysore Rail Museum",
+        category: "Heritage",
+        categoryColor: "bg-amber-700",
+        description: "Features vintage locomotives and galleries documenting rail history.",
+        location: "KRS Road",
+        rating: 4.6,
+        coords: [12.3168, 76.6434],
+        image: "/rail_museum.png"
+    },
+    {
+        id: 'lingambudhi-lake',
+        title: "Lingambudhi Lake",
+        category: "Nature",
+        categoryColor: "bg-green-500",
+        description: "A tranquil perennial lake known for its biodiversity and walking paths.",
+        location: "Ramakrishna Nagar",
+        rating: 4.2,
+        coords: [12.2685, 76.6214],
+        image: "/lingambudhi.png"
+    },
+    {
+        id: 'sandalwood-carving',
+        title: "Sandalwood Carving Artisan",
+        category: "Artisans",
+        categoryColor: "bg-rose-600",
+        description: "Authentic workshop showing the delicate art of carving Mysore sandalwood.",
+        location: "Mandi Mohalla",
+        rating: 4.8,
+        coords: [12.3214, 76.6521],
+        image: "/sandalwood.png",
+        story: "In the heart of Mandi Mohalla, the air is thick with the divine scent of sandalwood. Here, master artisans transform solid blocks of 'Liquid Gold' into intricate deities and fragrant treasures. This craft, once patronized by the Mysore Maharajas, remains a testament to the city's patient soul, where a single Gandaberunda carving can take months of meditative precision."
+    },
+    {
+        id: 'silk-weaving',
+        title: "Mysore Silk Weaving",
+        category: "Artisans",
+        categoryColor: "bg-rose-500",
+        description: "Witness the creation of the world-famous Mysore Silk sarees with gold zari.",
+        location: "KSIC Factory",
+        rating: 4.7,
+        coords: [12.2905, 76.6452],
+        image: "/silk.png",
+        story: "The clatter of looms at the KSIC factory tells a tale that began in 1912. Introduced by Tipu Sultan and later perfected by the Wodeyars, Mysore Silk is defined by its 100% pure silk and genuine 24-carat gold zari. Every saree woven here is a piece of living history, carrying a unique code that traces its lineage back to the very weaver who breathed life into its shimmering folds."
+    },
+    {
+        id: 'mylari-dosa',
+        title: "Original Mylari Dosa",
+        category: "Food",
+        categoryColor: "bg-emerald-600",
+        description: "Legendary breakfast spot known for its unique, cloud-soft butter dosas.",
+        location: "Nazarbad",
+        rating: 4.9,
+        coords: [12.3090, 76.6660],
+        image: "/mylari.png"
+    },
+    {
+        id: 'mysore-pak',
+        title: "Traditional Mysore Pak",
+        category: "Food",
+        categoryColor: "bg-emerald-500",
+        description: "Taste the authentic melt-in-your-mouth sweet that defined Mysore's cuisine.",
+        location: "Guru Sweets",
+        rating: 4.8,
+        coords: [12.3045, 76.6545],
+        image: "/mysorepak.png"
+    },
+    {
+        id: 'devaraja-market',
+        title: "Devaraja Market",
+        category: "Heritage",
+        categoryColor: "bg-amber-600",
+        description: "Vibrant local market with piles of kumkum, flowers, and local produce.",
+        location: "City Center",
+        rating: 4.6,
+        coords: [12.3105, 76.6515],
+        image: "/devaraja.png"
+    },
+    {
+        id: 'chamundi-trek',
+        title: "Chamundi Hill Steps Trek",
+        category: "Adventure",
+        categoryColor: "bg-orange-600",
+        description: "Challenge yourself with the 1,008 steps climb to the summit for breathtaking city views.",
+        location: "Chamundi Hills",
+        rating: 4.9,
+        coords: [12.2753, 76.6701],
+        image: "/chamundi-trek.webp"
+    },
+    {
+        id: 'varuna-lake',
+        title: "Varuna Lake Water Sports",
+        category: "Adventure",
+        categoryColor: "bg-orange-600",
+        description: "Enjoy jet skiing, kayaking, and banana boat rides on the outskirts of the city.",
+        location: "T. Narsipura Road",
+        rating: 4.5,
+        coords: [12.2612, 76.7123],
+        image: "https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&q=80&w=1000"
+    },
+    {
+        id: 'grs-fantasy',
+        title: "GRS Fantasy Park",
+        category: "Adventure",
+        categoryColor: "bg-orange-600",
+        description: "Mysuru's premier water & amusement park with thrilling slides and a virtual 5D ride.",
+        location: "KRS Road (8km)",
+        rating: 4.6,
+        coords: [12.3524, 76.6214],
+        image: "/grs-park.webp"
+    },
+    {
+        id: 'kunti-betta',
+        title: "Kunti Betta Night Trek",
+        category: "Adventure",
+        categoryColor: "bg-orange-600",
+        description: "A thrilling night trek near Pandavapura, famous for its sunrise and Tonnur Lake view.",
+        location: "Pandavapura (28km)",
+        rating: 4.8,
+        coords: [12.4812, 76.6715],
+        image: "https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=1000"
+    },
+
+    {
+        id: 'lalitha-mahal-stay',
+        title: "Lalitha Mahal Palace",
+        category: "Stays",
+        categoryColor: "bg-purple-600",
+        description: "Live like royalty in this glistening white palace hotel built for the Maharaja's guests.",
+        location: "Siddharta Nagar",
+        rating: 4.8,
+        coords: [12.3021, 76.6912],
+        image: "/lalithmahal.png"
+    },
+    {
+        id: 'metropole-stay',
+        title: "Royal Orchid Metropole",
+        category: "Stays",
+        categoryColor: "bg-purple-600",
+        description: "Heritage hotel offering vintage charm and personalized luxury in a quiet enclave.",
+        location: "JLB Road",
+        rating: 4.7,
+        coords: [12.3061, 76.6412],
+        image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=1000"
+    }
+];
+
+const allPlacesMap = new Map();
+[...featuredPlaces, ...popularPlaces].forEach(place => {
+    allPlacesMap.set(place.id, place);
+});
+const allPlaces = Array.from(allPlacesMap.values());
+
+
+
+function App() {
+    const mainScrollRef = useRef(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isAuthRestoring, setIsAuthRestoring] = useState(true); // New state for initial check
+    const [isAuthenticated, setIsAuthenticated] = useState(() => !!localStorage.getItem('userData'));
+    const [isSignUp, setIsSignUp] = useState(false);
+    const [userRole, setUserRole] = useState(() => {
+        const saved = localStorage.getItem('userData');
+        if (saved) {
+            try {
+                return JSON.parse(saved).role || 'user';
+            } catch (e) { return 'user'; }
+        }
+        return 'user';
+    });
+    const [userData, setUserData] = useState(() => {
+        const saved = localStorage.getItem('userData');
+        if (saved) {
+            try {
+                return JSON.parse(saved);
+            } catch (e) { return null; }
+        }
+        return null;
+    });
+    const [activeTab, setActiveTab] = useState(() => {
+        const saved = localStorage.getItem('activeTab');
+        return (saved && saved !== 'details') ? saved : 'home';
+    });
+    const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedPlace, setSelectedPlace] = useState(null);
+    const [mapDestination, setMapDestination] = useState(null);
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        return localStorage.getItem('theme') === 'dark';
+    });
+    const [savedPlaceIds, setSavedPlaceIds] = useState(() => {
+        const saved = localStorage.getItem('savedPlaces');
+        return saved ? JSON.parse(saved) : [];
+    });
+    const [spots, setSpots] = useState(allPlaces);
+    const [events, setEvents] = useState([]);
+
+    // Fetch spots from Supabase
+    const fetchSpots = async () => {
+        // NOTE: Disabled until heritage_spots table is ready
+        // try {
+        //     if (!supabase) return;
+        //     const { data, error } = await supabase
+        //         .from('heritage_spots')
+        //         .select('*');
+        //     if (error) throw error;
+        //     if (data && data.length > 0) {
+        //         const supabaseSpots = data.map(s => ({
+        //             id: s.id,
+        //             title: s.title,
+        //             category: s.category || 'Hidden Gem',
+        //             description: s.description,
+        //             location: s.address || 'Mysuru',
+        //             rating: 4.5,
+        //             coords: [s.location_lat || 12.3021, s.location_long || 76.6715],
+        //             image: s.image_url || '/src/assets/mysore-palace-daytime.jpg',
+        //             isVerified: s.is_verified
+        //         }));
+        //         setSpots([...supabaseSpots, ...allPlaces.filter(p => !supabaseSpots.some(s => s.title === p.title))]);
+        //     }
+        // } catch (err) {
+        //     console.warn("Heritage spots not available");
+        // }
+    };
+
+    // Fetch events from Supabase
+    // NOTE: Disabled until heritage_events table schema is properly configured in Supabase
+    const fetchEvents = async () => {
+        // Uncomment below once heritage_events table has correct columns
+        // try {
+        //     if (!supabase) return;
+        //     const { data, error } = await supabase
+        //         .from('heritage_events')
+        //         .select('*');
+        //     if (error) throw error;
+        //     if (data) setEvents(data);
+        // } catch (err) {
+        //     console.warn("Heritage events not available:", err?.message);
+        // }
+    };
+
+    React.useEffect(() => {
+        fetchSpots();
+        fetchEvents();
+    }, []);
+
+    // Persist Tab
+    React.useEffect(() => {
+        if (activeTab !== 'details') {
+            localStorage.setItem('activeTab', activeTab);
+        }
+    }, [activeTab]);
+
+    // Handle dark mode persistence
+    React.useEffect(() => {
+        localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        if (isDarkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    }, [isDarkMode]);
+
+    React.useEffect(() => {
+        localStorage.setItem('savedPlaces', JSON.stringify(savedPlaceIds));
+    }, [savedPlaceIds]);
+
+    // Gesture Navigation (Trackpad / 2-Finger Swipe)
+    React.useEffect(() => {
+        let lastSwipeTime = 0;
+        const SWIPE_COOLDOWN = 600; // ms
+        const SWIPE_THRESHOLD = 30; // sensitivity
+
+        const handleWheel = (e) => {
+            // deltaX is horizontal scroll (2-finger swipe on trackpad)
+            const dx = e.deltaX;
+            const dy = e.deltaY;
+
+            // Only trigger if horizontal movement is clearly dominant and meets threshold
+            if (Math.abs(dx) > Math.abs(dy) * 2 && Math.abs(dx) > SWIPE_THRESHOLD) {
+                const now = Date.now();
+                if (now - lastSwipeTime < SWIPE_COOLDOWN) return;
+
+                const tabs = ['home', 'explore', 'MapComponent', 'saved', 'planner'];
+                const currentIndex = tabs.indexOf(activeTab);
+
+                if (dx < -SWIPE_THRESHOLD) { // Swipe Right (Fingers move L to R) -> GO BACK
+                    lastSwipeTime = now;
+                    if (activeTab === 'details') {
+                        setActiveTab('home');
+                    } else if (currentIndex > 0) {
+                        setActiveTab(tabs[currentIndex - 1]);
+                    }
+                } else if (dx > SWIPE_THRESHOLD) { // Swipe Left (Fingers move R to L) -> GO NEXT
+                    lastSwipeTime = now;
+                    if (activeTab === 'details') return; // Don't swipe forward from details
+                    if (currentIndex !== -1 && currentIndex < tabs.length - 1) {
+                        setActiveTab(tabs[currentIndex + 1]);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('wheel', handleWheel, { passive: true });
+        return () => window.removeEventListener('wheel', handleWheel);
+    }, [activeTab]);
+
+    // Touch Swipe Navigation for Mobile
+    React.useEffect(() => {
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        const handleTouchStart = (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+            touchStartY = e.changedTouches[0].screenY;
+        };
+
+        const handleTouchEnd = (e) => {
+            const touchEndX = e.changedTouches[0].screenX;
+            const touchEndY = e.changedTouches[0].screenY;
+
+            const dx = touchStartX - touchEndX;
+            const dy = touchStartY - touchEndY;
+
+            // Sensitivity threshold
+            if (Math.abs(dx) > Math.abs(dy) * 1.5 && Math.abs(dx) > 100) {
+                const tabs = ['home', 'explore', 'MapComponent', 'saved', 'planner'];
+                const currentIndex = tabs.indexOf(activeTab);
+
+                if (dx < 0) { // Swiped Right -> BACK
+                    if (activeTab === 'details') {
+                        setActiveTab('home');
+                    } else if (currentIndex > 0) {
+                        setActiveTab(tabs[currentIndex - 1]);
+                    }
+                } else { // Swiped Left -> NEXT
+                    if (activeTab === 'details') return;
+                    if (currentIndex !== -1 && currentIndex < tabs.length - 1) {
+                        setActiveTab(tabs[currentIndex + 1]);
+                    }
+                }
+            }
+        };
+
+        window.addEventListener('touchstart', handleTouchStart);
+        window.addEventListener('touchend', handleTouchEnd);
+        return () => {
+            window.removeEventListener('touchstart', handleTouchStart);
+            window.removeEventListener('touchend', handleTouchEnd);
+        };
+    }, [activeTab]);
+
+    // Initial Auth Check
+    React.useEffect(() => {
+        setIsAuthRestoring(false); // Auth restoration attempt complete
+    }, []);
+
+    // Scroll to Top on Tab Change
+    React.useEffect(() => {
+        if (mainScrollRef.current) {
+            mainScrollRef.current.scrollTop = 0;
+        }
+    }, [activeTab]);
+
+    const [_session, setSession] = useState(null);
+
+    const fetchProfile = async (userId, email) => {
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+
+            if (error) {
+                console.warn('Profile sync: using current details or defaults');
+                return;
+            }
+
+            if (data) {
+                const updatedUser = {
+                    ...data,
+                    fullName: data.full_name || data.fullName,
+                    email: email || data.email,
+                    phone: data.phone || 'N/A',
+                    role: data.role || 'user'
+                };
+                setUserData(updatedUser);
+                setUserRole(updatedUser.role);
+                setIsAuthenticated(true);
+                localStorage.setItem('userData', JSON.stringify(updatedUser));
+            }
+        } catch (err) {
+            console.error('Profile sync failed', err);
+        }
+    };
+
+    const fetchSavedPlaces = async (userId) => {
+        try {
+            if (!supabase) return;
+            const { data, error } = await supabase
+                .from('saved_places')
+                .select('spot_id')
+                .eq('user_id', userId);
+
+            if (error) throw error;
+            if (data) {
+                setSavedPlaceIds(data.map(item => item.spot_id));
+            }
+        } catch (err) {
+            console.error('Failed to fetch saved places', err);
+        }
+    };
+
+    React.useEffect(() => {
+        if (!supabase) return;
+
+        // 1. Check active session
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                setSession(session);
+                fetchProfile(session.user.id, session.user.email);
+            }
+        });
+
+        // 2. Listen for changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, newSession) => {
+            if (newSession) {
+                setSession(newSession);
+                fetchProfile(newSession.user.id, newSession.user.email);
+                fetchSavedPlaces(newSession.user.id);
+            } else if (event === 'SIGNED_OUT') {
+                // Only clear if it's an explicit sign out event
+                setIsAuthenticated(false);
+                setUserData(null);
+                setUserRole('user');
+                localStorage.removeItem('userData');
+            }
+        });
+
+        return () => subscription.unsubscribe();
+    }, []);
+
+    const toggleSave = async (e, id) => {
+        e.stopPropagation(); // Prevent card click
+
+        // Check if ID is a valid UUID (database entries) or a local string
+        const isLocalId = !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-5][0-9a-f]{3}-[089ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id);
+
+        if (isAuthenticated && userData?.id && !isLocalId) {
+            const isAlreadySaved = savedPlaceIds.includes(id);
+            try {
+                if (isAlreadySaved) {
+                    const { error } = await supabase
+                        .from('saved_places')
+                        .delete()
+                        .eq('user_id', userData.id)
+                        .eq('spot_id', id);
+                    if (error) throw error;
+                    setSavedPlaceIds(prev => prev.filter(pId => pId !== id));
+                } else {
+                    const { error } = await supabase
+                        .from('saved_places')
+                        .insert([{ user_id: userData.id, spot_id: id }]);
+                    if (error) throw error;
+                    setSavedPlaceIds(prev => [...prev, id]);
+                }
+            } catch (err) {
+                console.error("Supabase toggle save failed:", err);
+                // Fallback to local state if DB fails
+                setSavedPlaceIds(prev =>
+                    prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]
+                );
+            }
+        } else {
+            // Local Guest fallback
+            setSavedPlaceIds(prev =>
+                prev.includes(id) ? prev.filter(pId => pId !== id) : [...prev, id]
+            );
+        }
+    };
+
+    const toggleDarkMode = () => {
+        setIsDarkMode(!isDarkMode);
+        if (!isDarkMode) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    };
+
+    const handleLogout = async () => {
+        if (supabase) {
+            await supabase.auth.signOut();
+        }
+        // Always clear localStorage on logout
+        localStorage.removeItem('userData');
+        localStorage.removeItem('activeTab');
+        localStorage.removeItem('theme');
+        setIsAuthenticated(false);
+        setUserData(null);
+        setUserRole('user');
+        setIsSignUp(false); // Ensure we return to login page, not signup
+        setActiveTab('home');
+    };
+
+    const handleLogin = (role, userProfile) => {
+        // Optimistic update if passed from LoginPage
+        if (userProfile) {
+            const normalizedProfile = {
+                ...userProfile,
+                fullName: userProfile.fullName || userProfile.full_name,
+                role: role
+            };
+            setUserData(normalizedProfile);
+            setUserRole(role);
+            setIsLoading(true); // Trigger premium loader
+            setIsAuthenticated(true);
+            localStorage.setItem('userData', JSON.stringify(normalizedProfile));
+        }
+    };
+
+    const handleSignUp = (role, userProfile) => {
+        if (userProfile) {
+            const normalizedProfile = {
+                ...userProfile,
+                fullName: userProfile.fullName || userProfile.full_name,
+                role: role || userProfile.role || 'user'
+            };
+            setUserData(normalizedProfile);
+            setUserRole(role || normalizedProfile.role || 'user');
+            localStorage.setItem('userData', JSON.stringify(normalizedProfile));
+        } else {
+            setUserRole(role || 'user');
+        }
+        setIsLoading(true); // Trigger premium loader
+        setIsAuthenticated(true);
+    };
+
+    const handlePlaceClick = (place) => {
+        setSelectedPlace(place);
+        setActiveTab('details');
+    };
+
+    const updateUserProfile = async (updates) => {
+        try {
+            if (supabase && userData?.id) {
+                const { error } = await supabase
+                    .from('profiles')
+                    .update(updates)
+                    .eq('id', userData.id);
+                if (error) throw error;
+            }
+
+            // Update local state and storage
+            const updatedUser = { ...userData, ...updates };
+            setUserData(updatedUser);
+            localStorage.setItem('userData', JSON.stringify(updatedUser));
+            return { success: true };
+        } catch (err) {
+            console.error('Update profile failed', err);
+            return { success: false, error: err.message };
+        }
+    };
+
+    const handleFeaturedCardClick = (place) => {
+        handlePlaceClick(place);
+    };
+
+    if (isLoading) {
+        return <Loader onFinish={() => setIsLoading(false)} />;
+    }
+
+    if (!isAuthenticated) {
+        return (
+            <AuthPage
+                onLogin={handleLogin}
+                onSignUp={handleSignUp}
+            />
+        );
+    }
+
+    if (userRole === 'admin') {
+        return <AdminDashboard onLogout={handleLogout} />;
+    }
+
+    if (userRole === 'partner') {
+        return <PartnerDashboard onLogout={handleLogout} partnerData={userData} />;
+    }
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case 'details':
+                return (
+                    <PlaceDetails
+                        place={selectedPlace}
+                        onBack={() => setActiveTab('home')}
+                        isSaved={savedPlaceIds.includes(selectedPlace?.id)}
+                        onToggleSave={toggleSave}
+                        userEmail={userData?.email}
+                        onGetDirections={(place) => {
+                            setMapDestination(place);
+                            setActiveTab('MapComponent');
+                        }}
+                        allPlaces={spots}
+                        onPlaceClick={handlePlaceClick}
+                    />
+                );
+            case 'planner':
+                return <TravaAI onBack={() => setActiveTab('home')} />;
+            case 'home':
+                return (
+                    <>
+                        <Hero onExploreClick={() => setActiveTab('explore')} />
+                        <FeaturedSection
+                            places={spots.slice(0, 4)}
+                            onCardClick={handleFeaturedCardClick}
+                            savedPlaceIds={savedPlaceIds}
+                            onToggleSave={toggleSave}
+                            onSeeAllClick={() => setActiveTab('MapComponent')}
+                        />
+                        <EventsSection events={events} />
+                    </>
+                );
+            case 'explore':
+                return (
+                    <Explore
+                        places={spots}
+                        savedPlaceIds={savedPlaceIds}
+                        onToggleSave={toggleSave}
+                        onCardClick={handlePlaceClick}
+                        selectedCategory={selectedCategory}
+                        onCategoryClick={setSelectedCategory}
+                    />
+                );
+            case 'MapComponent':
+                return <MapComponent places={spots} destination={mapDestination} />;
+            case 'saved':
+                return (
+                    <Saved
+                        savedPlaceIds={savedPlaceIds}
+                        allPlaces={spots}
+                        onToggleSave={toggleSave}
+                        onCardClick={handlePlaceClick}
+                    />
+                );
+            case 'profile':
+                return (
+                    <ProfilePage
+                        userData={userData}
+                        onUpdateProfile={updateUserProfile}
+                        savedPlaceIds={savedPlaceIds}
+                        allPlaces={spots}
+                        onBack={() => setActiveTab('home')}
+                        isDarkMode={isDarkMode}
+                        onToggleDarkMode={toggleDarkMode}
+                        onLogout={handleLogout}
+                    />
+                );
+            default:
+                return null;
+        }
+    };
+    return (
+        <div className="min-h-screen w-full bg-mysore-light dark:bg-mysore-dark bg-fixed transition-colors duration-200 selection:bg-[#D4AF37]/30 flex flex-col relative pb-24 md:pb-0">
+            {activeTab !== 'profile' && activeTab !== 'details' && (
+                <div className="sticky top-0 z-40 bg-[#f3e3ad]/60 dark:bg-black/60 backdrop-blur-xl border-b border-[#D4AF37]/20 pt-[env(safe-area-inset-top)] pb-2 shadow-sm">
+                    <div className="max-w-7xl mx-auto w-full">
+                        <Navbar
+                            onProfileClick={() => setActiveTab('profile')}
+                            activeTab={activeTab}
+                            setActiveTab={(id) => {
+                                if (id === 'explore') setSelectedCategory(null);
+                                setActiveTab(id);
+                            }}
+                        />
+                    </div>
+                </div>
+            )}
+
+            <div className={`flex-1 w-full ${activeTab === 'MapComponent' || activeTab === 'details' ? 'h-full flex flex-col' : ''}`}>
+                <div className="max-w-7xl mx-auto w-full h-full">
+                    {renderContent()}
+                </div>
+            </div>
+
+            {/* Premium Heritage Guide ChatBot */}
+            {isAuthenticated && userRole === 'user' && activeTab !== 'profile' && activeTab !== 'details' && activeTab !== 'planner' && (
+                <div className="fixed bottom-6 right-6 z-50 pointer-events-none md:pointer-events-auto mix-blend-normal hidden md:block">
+                    <ChatBot />
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default App;

@@ -1,0 +1,223 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  body {
+    background: linear-gradient(180deg, #f3e3ad 0%, #fefae0 30%, #ffffff 100%) no-repeat fixed;
+    background-size: cover;
+    @apply text-gray-900 dark:text-white transition-colors duration-200;
+  }
+
+  #root {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@layer utilities {
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #e5e7eb;
+    border-radius: 20px;
+  }
+
+  .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #374151;
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #e5e7eb transparent;
+  }
+
+  .dark .custom-scrollbar {
+    scrollbar-color: #374151 transparent;
+  }
+
+  /* Universal Mysore Pale Gold Gradient */
+  .mysore-main-bg {
+    background: linear-gradient(180deg, #f3e3ad 0%, #fefae0 30%, #ffffff 100%) no-repeat fixed;
+    background-size: cover;
+  }
+
+  .dark .mysore-main-bg {
+    background: linear-gradient(180deg, #1a1a1a 0%, #111111 100%) no-repeat fixed;
+    background-size: cover;
+  }
+}
+
+/* Auth Slider Transitions */
+.auth-slider-container {
+  width: 100%;
+  overflow: hidden;
+  height: 100vh;
+}
+
+.auth-slider {
+  display: flex;
+  width: 200%;
+  height: 100%;
+  transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+}
+
+.auth-page-wrapper {
+  width: 50%;
+  height: 100%;
+  flex-shrink: 0;
+}
+
+/* Animations */
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-in {
+  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.fade-in {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Leaflet Map Global Fixes */
+.leaflet-container {
+  height: 100% !important;
+  width: 100% !important;
+  outline: none;
+  z-index: 10;
+}
+
+/* Ensure tiles look good in both modes */
+.leaflet-tile-pane {
+  filter: brightness(1.05) contrast(0.95);
+}
+
+.dark .leaflet-tile-pane {
+  filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+}
+
+/* Clean up Leaflet controls */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06) !important;
+}
+
+.leaflet-bar a {
+  background-color: white !important;
+  color: #4B5563 !important;
+  border: none !important;
+  border-bottom: 1px solid #E5E7EB !important;
+}
+
+.leaflet-bar a:last-child {
+  border-bottom: none !important;
+}
+
+.dark .leaflet-bar a {
+  background-color: #1F2937 !important;
+  color: #D1D5DB !important;
+  border-color: #374151 !important;
+}
+
+
+
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(15px);
+    filter: blur(10px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 0.6;
+  }
+}
+
+@keyframes loading-progress {
+  0% {
+    width: 0%;
+  }
+
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.5s forwards;
+}
+
+.animate-fade-in-up-delay {
+  animation: fade-in-up 1.2s cubic-bezier(0.2, 0.8, 0.2, 1) 0.8s forwards;
+}
+
+.animate-fade-in-slow {
+  animation: fade-in 2s ease-out 1.5s forwards;
+}
+
+.animate-loading-progress {
+  animation: loading-progress 4.5s cubic-bezier(0.1, 0, 0.3, 1) forwards;
+}
